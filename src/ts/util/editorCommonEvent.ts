@@ -142,40 +142,41 @@ export const hotkeyEvent = (vditor: IVditor, editorElement: HTMLElement) => {
             return;
         }
 
-        if (isCtrl(event) && event.key.toLowerCase() === 'v') {
-            console.log(event);
-            navigator.clipboard
-                .readText()
-                .then((v) => {
-                    console.log("获取剪贴板成功: ", v);
-                })
-                .catch((v) => {
-                    console.log("获取剪贴板失败: ", v);
-                });
-            const value = "![image.png](https://blogbed.gugg.pro/2020%E6%80%BB%E7%BB%93/7bd0f029df154d8b8d550b1f2f0c6154.png)";
-            const range = getEditorRange(vditor);
-            let html = value;
-            if (vditor.currentMode === "wysiwyg") {
-                html = vditor.lute.SpinVditorDOM(value);
-            } else if (vditor.currentMode === "ir") {
-                html = vditor.lute.SpinVditorIRDOM(value);
-            }
-            if (value.indexOf(":") > -1 && vditor.currentMode !== "sv") {
-                const tempElement = document.createElement("div");
-                tempElement.innerHTML = html;
-                html = tempElement.firstElementChild.firstElementChild.outerHTML + " ";
-                insertHTML(html, vditor);
-            } else {
-                range.extractContents();
-                range.insertNode(document.createTextNode(value));
-            }
-            range.collapse(false);
-            setSelectionFocus(range);
-            // editorElement.style.display = "none";
-            execAfterRender(vditor);
+        // if (isCtrl(event) && event.key.toLowerCase() === 'v') {
+        //     console.log(event);
+        //     navigator.clipboard
+        //         .readText()
+        //         .then((v) => {
+        //             debugger
+        //             console.log("获取剪贴板成功: ", v);
+        //         })
+        //         .catch((v) => {
+        //             console.log("获取剪贴板失败: ", v);
+        //         });
+        //     const value = "![image.png](https://blogbed.gugg.pro/2020%E6%80%BB%E7%BB%93/7bd0f029df154d8b8d550b1f2f0c6154.png)";
+        //     const range = getEditorRange(vditor);
+        //     let html = value;
+        //     if (vditor.currentMode === "wysiwyg") {
+        //         html = vditor.lute.SpinVditorDOM(value);
+        //     } else if (vditor.currentMode === "ir") {
+        //         html = vditor.lute.SpinVditorIRDOM(value);
+        //     }
+        //     if (value.indexOf(":") > -1 && vditor.currentMode !== "sv") {
+        //         const tempElement = document.createElement("div");
+        //         tempElement.innerHTML = html;
+        //         html = tempElement.firstElementChild.firstElementChild.outerHTML + " ";
+        //         insertHTML(html, vditor);
+        //     } else {
+        //         range.extractContents();
+        //         range.insertNode(document.createTextNode(value));
+        //     }
+        //     range.collapse(false);
+        //     setSelectionFocus(range);
+        //     // editorElement.style.display = "none";
+        //     execAfterRender(vditor);
 
-            return;
-        }
+        //     return;
+        // }
 
         // undo
         if (matchHotKey("⌘Z", event) && !vditor.toolbar.elements.undo) {

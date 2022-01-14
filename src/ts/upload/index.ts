@@ -1,6 +1,9 @@
-import {getEditorRange, setSelectionFocus} from "../util/selection";
-import {getElement} from "./getElement";
-import {setHeaders} from "./setHeaders";
+import * as OSS from "ali-oss";
+import * as aliOSS from "ali-oss";
+import { getEditorRange, setSelectionFocus } from "../util/selection";
+import { getElement } from "./getElement";
+import { setHeaders } from "./setHeaders";
+
 
 class Upload {
     public element: HTMLElement;
@@ -72,25 +75,25 @@ const validateFile = (vditor: IVditor, files: File[]) => {
     return uploadFileList;
 };
 
-const genUploadedLabel = (responseText: string, vditor: IVditor) => {
+const genUploadedLabel = (response: OSS.PutObjectResult, vditor: IVditor) => {
     const editorElement = getElement(vditor);
     editorElement.focus();
-    const response = JSON.parse(responseText);
+    // const response = JSON.parse(responseText);
     let errorTip = "";
 
-    if (response.code === 1) {
-        errorTip = `${response.msg}`;
+    if (response.res.status != 200) {
+        errorTip = `${response.res.rt}`;
     }
 
-    if (response.data.errFiles && response.data.errFiles.length > 0) {
-        errorTip = `<ul><li>${errorTip}</li>`;
-        response.data.errFiles.forEach((data: string) => {
-            const lastIndex = data.lastIndexOf(".");
-            const filename = vditor.options.upload.filename(data.substr(0, lastIndex)) + data.substr(lastIndex);
-            errorTip += `<li>${filename} ${window.VditorI18n.uploadError}</li>`;
-        });
-        errorTip += "</ul>";
-    }
+    // if (response.data.errFiles && response.data.errFiles.length > 0) {
+    //     errorTip = `<ul><li>${errorTip}</li>`;
+    //     response.data.errFiles.forEach((data: string) => {
+    //         const lastIndex = data.lastIndexOf(".");
+    //         const filename = vditor.options.upload.filename(data.substr(0, lastIndex)) + data.substr(lastIndex);
+    //         errorTip += `<li>${filename} ${window.VditorI18n.uploadError}</li>`;
+    //     });
+    //     errorTip += "</ul>";
+    // }
 
     if (errorTip) {
         vditor.tip.show(errorTip);
@@ -99,42 +102,41 @@ const genUploadedLabel = (responseText: string, vditor: IVditor) => {
     }
 
     let succFileText = "";
-    Object.keys(response.data.succMap).forEach((key) => {
-        const path = response.data.succMap[key];
-        const lastIndex = key.lastIndexOf(".");
-        let type = key.substr(lastIndex);
-        const filename = vditor.options.upload.filename(key.substr(0, lastIndex)) + type;
-        type = type.toLowerCase();
-        if (type.indexOf(".wav") === 0 || type.indexOf(".mp3") === 0 || type.indexOf(".ogg") === 0) {
-            if (vditor.currentMode === "wysiwyg") {
-                succFileText += `<div class="vditor-wysiwyg__block" data-type="html-block"
+    const path = response.url;
+    const filename = response.name;
+    var typeStrs = response.name.split(".")
+    const type = "." + typeStrs[typeStrs.length - 1];
+    debugger;
+    if (type.indexOf(".wav") === 0 || type.indexOf(".mp3") === 0 || type.indexOf(".ogg") === 0) {
+        if (vditor.currentMode === "wysiwyg") {
+            succFileText += `<div class="vditor-wysiwyg__block" data-type="html-block"
  data-block="0"><pre><code>&lt;audio controls="controls" src="${path}"&gt;&lt;/audio&gt;</code></pre>\n`;
-            } else if (vditor.currentMode === "ir") {
-                succFileText += `<audio controls="controls" src="${path}"></audio>\n`;
-            } else {
-                succFileText += `[${filename}](${path})\n`;
-            }
-        } else if (type.indexOf(".apng") === 0
-            || type.indexOf(".bmp") === 0
-            || type.indexOf(".gif") === 0
-            || type.indexOf(".ico") === 0 || type.indexOf(".cur") === 0
-            || type.indexOf(".jpg") === 0 || type.indexOf(".jpeg") === 0 || type.indexOf(".jfif") === 0 || type.indexOf(".pjp") === 0 || type.indexOf(".pjpeg") === 0
-            || type.indexOf(".png") === 0
-            || type.indexOf(".svg") === 0
-            || type.indexOf(".webp") === 0) {
-            if (vditor.currentMode === "wysiwyg") {
-                succFileText += `<img alt="${filename}" src="${path}">\n`;
-            } else {
-                succFileText += `![${filename}](${path})\n`;
-            }
+        } else if (vditor.currentMode === "ir") {
+            succFileText += `<audio controls="controls" src="${path}"></audio>\n`;
         } else {
-            if (vditor.currentMode === "wysiwyg") {
-                succFileText += `<a href="${path}">${filename}</a>\n`;
-            } else {
-                succFileText += `[${filename}](${path})\n`;
-            }
+            succFileText += `[${filename}](${path})\n`;
         }
-    });
+    } else if (type.indexOf(".apng") === 0
+        || type.indexOf(".bmp") === 0
+        || type.indexOf(".gif") === 0
+        || type.indexOf(".ico") === 0 || type.indexOf(".cur") === 0
+        || type.indexOf(".jpg") === 0 || type.indexOf(".jpeg") === 0 || type.indexOf(".jfif") === 0 || type.indexOf(".pjp") === 0 || type.indexOf(".pjpeg") === 0
+        || type.indexOf(".png") === 0
+        || type.indexOf(".svg") === 0
+        || type.indexOf(".webp") === 0) {
+        if (vditor.currentMode === "wysiwyg") {
+            succFileText += `<img alt="${filename}" src="${path}">\n`;
+        } else {
+            succFileText += `![${filename}](${path})\n`;
+        }
+    } else {
+        if (vditor.currentMode === "wysiwyg") {
+            succFileText += `<a href="${path}">${filename}</a>\n`;
+        } else {
+            succFileText += `[${filename}](${path})\n`;
+        }
+    }
+
     setSelectionFocus(vditor.upload.range);
     document.execCommand("insertHTML", false, succFileText);
     vditor.upload.range = getSelection().getRangeAt(0).cloneRange();
@@ -205,53 +207,137 @@ const uploadFiles =
         }
 
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", vditor.options.upload.url);
-        if (vditor.options.upload.token) {
-            xhr.setRequestHeader("X-Upload-Token", vditor.options.upload.token);
-        }
-        if (vditor.options.upload.withCredentials) {
-            xhr.withCredentials = true;
-        }
-        setHeaders(vditor, xhr);
+        xhr.open("GET", "http://localhost:8989/admin/upload/policy?title=eqwe1");
+        // if (vditor.options.upload.token) {
+        //     xhr.setRequestHeader("X-Upload-Token", vditor.options.upload.token);
+        // }
+        // if (vditor.options.upload.withCredentials) {
+        //     xhr.withCredentials = true;
+        // }
+        // setHeaders(vditor, xhr);
         vditor.upload.isUploading = true;
-        editorElement.setAttribute("contenteditable", "false");
-        xhr.onreadystatechange = () => {
-            if (xhr.readyState === XMLHttpRequest.DONE) {
-                vditor.upload.isUploading = false;
-                editorElement.setAttribute("contenteditable", "true");
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    if (vditor.options.upload.success) {
-                        vditor.options.upload.success(editorElement, xhr.responseText);
-                    } else {
-                        let responseText = xhr.responseText;
-                        if (vditor.options.upload.format) {
-                            responseText = vditor.options.upload.format(files as File [], xhr.responseText);
-                        }
-                        genUploadedLabel(responseText, vditor);
-                    }
-                } else {
-                    if (vditor.options.upload.error) {
-                        vditor.options.upload.error(xhr.responseText);
-                    } else {
-                        vditor.tip.show(xhr.responseText);
-                    }
-                }
-                if (element) {
-                    element.value = "";
-                }
-                vditor.upload.element.style.display = "none";
+        // editorElement.setAttribute("contenteditable", "false");
+        debugger;
+        xhr.send();
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                console.log("STS信息: " + xhr.response)
+                debugger
+                let stsData = JSON.parse(xhr.response).data;
+                let ossStaticHost = stsData.ossStaticHost;
+                var client = new OSS({
+                    accessKeyId: stsData.accessKeyId,
+                    accessKeySecret: stsData.accessKeySecret,
+                    stsToken: stsData.securityToken,
+                    bucket: stsData.bucket,
+                    region: stsData.region
+                })
+                //   文章 名称
+                var title = "我是你爹";
+                // 上传  文件名
+                var timestamp = (new Date()).valueOf();;
+                var filename = timestamp + "." + "png"
+                // 上传相对于整个bucket（图床）路径名
+                var ext = title + "/" + filename
+                // 文章中显示的地址 
+                var filePath = ossStaticHost + title + "/" + filename
+                client.put(ext, validateResult[0]).then((result) => {
+                    // console.log(result)
+                    // console.log(uuid())
+                    // console.log(blob)
+                    debugger
+                    genUploadedLabel(result, vditor);
+                    vditor.upload.isUploading = false;
+                    // callback(filePath, '')
+                })
+                debugger;
             }
-        };
-        xhr.upload.onprogress = (event: ProgressEvent) => {
-            if (!event.lengthComputable) {
-                return;
-            }
-            const progress = event.loaded / event.total * 100;
-            vditor.upload.element.style.display = "block";
-            const progressBar = vditor.upload.element;
-            progressBar.style.width = progress + "%";
-        };
-        xhr.send(formData);
+        }
+
+        // const xhr = new XMLHttpRequest();
+        // xhr.open("POST", vditor.options.upload.url);
+        // if (vditor.options.upload.token) {
+        //     xhr.setRequestHeader("X-Upload-Token", vditor.options.upload.token);
+        // }
+        // if (vditor.options.upload.withCredentials) {
+        //     xhr.withCredentials = true;
+        // }
+        // setHeaders(vditor, xhr);
+        // vditor.upload.isUploading = true;
+        // editorElement.setAttribute("contenteditable", "false");
+        // xhr.onreadystatechange = () => {
+        //     if (xhr.readyState === XMLHttpRequest.DONE) {
+        //         vditor.upload.isUploading = false;
+        //         editorElement.setAttribute("contenteditable", "true");
+        //         if (xhr.status >= 200 && xhr.status < 300) {
+        //             if (vditor.options.upload.success) {
+        //                 vditor.options.upload.success(editorElement, xhr.responseText);
+        //             } else {
+        //                 let responseText = xhr.responseText;
+        //                 if (vditor.options.upload.format) {
+        //                     responseText = vditor.options.upload.format(files as File [], xhr.responseText);
+        //                 }
+        //                 genUploadedLabel(responseText, vditor);
+        //             }
+        //         } else {
+        //             if (vditor.options.upload.error) {
+        //                 vditor.options.upload.error(xhr.responseText);
+        //             } else {
+        //                 vditor.tip.show(xhr.responseText);
+        //             }
+        //         }
+        //         if (element) {
+        //             element.value = "";
+        //         }
+        //         vditor.upload.element.style.display = "none";
+        //     }
+        // };
+        // xhr.upload.onprogress = (event: ProgressEvent) => {
+        //     if (!event.lengthComputable) {
+        //         return;
+        //     }
+        //     const progress = event.loaded / event.total * 100;
+        //     vditor.upload.element.style.display = "block";
+        //     const progressBar = vditor.upload.element;
+        //     progressBar.style.width = progress + "%";
+        // };
+        // xhr.send(formData);
     };
 
-export {Upload, uploadFiles};
+// policy(this.postForm.title).then((response) => {
+//     console.log(response)
+//     const OSS = require('ali-oss')
+//     let ossStaticHost=response.data.ossStaticHost;
+//     try {
+//       var client = OSS({
+//         accessKeyId: response.data.accessKeyId,
+//         accessKeySecret: response.data.accessKeySecret,
+//         stsToken: response.data.securityToken,
+//         bucket: response.data.bucket,
+//         region: response.data.region
+//       })
+//       // 文章 名称
+//       var title = this.postForm.title
+//       // 上传  文件名
+//       var filename=uuid()+"."+blob.type.split('/').pop()
+//       // 上传相对于整个bucket（图床）路径名
+//       var ext=title+"/"+filename
+//       // 文章中显示的地址 
+//       var filePath=ossStaticHost+title+"/"+filename
+//       client.put(ext, blob).then((result) => {
+//         // console.log(result)
+//         // console.log(uuid())
+//         // console.log(blob)
+//         debugger
+//         callback(filePath, '')
+//       })
+//       // console.log(result);
+//       // callback(response.data, '')
+//     } catch (e) {
+//       console.log(e)
+//     }
+//   })
+
+
+export { Upload, uploadFiles };

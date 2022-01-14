@@ -647,3 +647,12 @@ Vditor 使用 [MIT](https://opensource.org/licenses/MIT) 开源协议。
 终于，我们决定开始在 Sym 中自己实现编辑器。随着几个版本的迭代，Sym 的编辑器也日趋成熟。在我们运营的社区[链滴](https://ld246.com)上陆续有人问我们是否能将编辑器单独抽离出来提供给大家使用。与此同时，我们的前端主程 [V](https://ld246.com/member/Vanessa) 同学对于维护分散在各个项目中的编辑器也感到有点力不从心，外加对 TypeScript 的好感，所以就决定使用 ts 来实现一个全新的浏览器端 md 编辑器。
 
 于是，Vditor 就这样诞生了。
+
+
+
+## 拓展
+
+```
+要装这个
+npm install @types/ali-oss --save
+```

@@ -15,7 +15,11 @@
     "src/assets/*"
   ],
   "dependencies": {
-    "diff-match-patch": "^1.0.5"
+    "@types/ali-oss": "^6.16.2",
+    "ali-oss": "^6.16.0",
+    "diff-match-patch": "^1.0.5",
+    "postcss": "^8.1.0",
+    "uuid": "^8.3.2"
   },
   "types": "dist/index.d.ts",
   "devDependencies": {

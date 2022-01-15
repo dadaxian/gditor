@@ -17,6 +17,29 @@ class Upload {
     }
 }
 
+class UploadResultData {
+    public errFiles: string[];
+    public succMap: Map<string, string>;
+    constructor() {
+        this.errFiles = [];
+        this.succMap = new Map<string, string>();
+    }
+}
+
+class UploadResult {
+    public msg: string;
+    public code: number;
+    public data: UploadResultData;
+    constructor() {
+        this.code = 200;
+        this.data = new UploadResultData();
+    }
+    fail(msg: string) {
+        this.code = 1;
+        this.msg = msg;
+    }
+}
+
 const validateFile = (vditor: IVditor, files: File[]) => {
     vditor.tip.hide();
     const uploadFileList = [];
@@ -142,6 +165,75 @@ const genUploadedLabel = (response: OSS.PutObjectResult, vditor: IVditor) => {
     vditor.upload.range = getSelection().getRangeAt(0).cloneRange();
 };
 
+const genUploadedLabelOrigin = (response: UploadResult, vditor: IVditor) => {
+    const editorElement = getElement(vditor);
+    editorElement.focus();
+    // const response = JSON.parse(responseText);
+    let errorTip = "";
+
+    if (response.code === 1) {
+        errorTip = `${response.msg}`;
+    }
+
+    if (response.data.errFiles && response.data.errFiles.length > 0) {
+        errorTip = `<ul><li>${errorTip}</li>`;
+        response.data.errFiles.forEach((data: string) => {
+            const lastIndex = data.lastIndexOf(".");
+            const filename = vditor.options.upload.filename(data.substr(0, lastIndex)) + data.substr(lastIndex);
+            errorTip += `<li>${filename} ${window.VditorI18n.uploadError}</li>`;
+        });
+        errorTip += "</ul>";
+    }
+
+    if (errorTip) {
+        vditor.tip.show(errorTip);
+    } else {
+        vditor.tip.hide();
+    }
+
+    let succFileText = "";
+    response.data.succMap.forEach((value, key) => {
+        const path = value;
+        const lastIndex = key.lastIndexOf(".");
+        let type = key.substr(lastIndex);
+        const filename = vditor.options.upload.filename(key.substr(0, lastIndex)) + type;
+        type = type.toLowerCase();
+        if (type.indexOf(".wav") === 0 || type.indexOf(".mp3") === 0 || type.indexOf(".ogg") === 0) {
+            if (vditor.currentMode === "wysiwyg") {
+                succFileText += `<div class="vditor-wysiwyg__block" data-type="html-block"
+ data-block="0"><pre><code>&lt;audio controls="controls" src="${path}"&gt;&lt;/audio&gt;</code></pre>\n`;
+            } else if (vditor.currentMode === "ir") {
+                succFileText += `<audio controls="controls" src="${path}"></audio>\n`;
+            } else {
+                succFileText += `[${filename}](${path})\n`;
+            }
+        } else if (type.indexOf(".apng") === 0
+            || type.indexOf(".bmp") === 0
+            || type.indexOf(".gif") === 0
+            || type.indexOf(".ico") === 0 || type.indexOf(".cur") === 0
+            || type.indexOf(".jpg") === 0 || type.indexOf(".jpeg") === 0 || type.indexOf(".jfif") === 0 || type.indexOf(".pjp") === 0 || type.indexOf(".pjpeg") === 0
+            || type.indexOf(".png") === 0
+            || type.indexOf(".svg") === 0
+            || type.indexOf(".webp") === 0) {
+            if (vditor.currentMode === "wysiwyg") {
+                succFileText += `<img alt="${filename}" src="${path}">\n`;
+            } else {
+                succFileText += `![${filename}](${path})\n`;
+            }
+        } else {
+            if (vditor.currentMode === "wysiwyg") {
+                succFileText += `<a href="${path}">${filename}</a>\n`;
+            } else {
+                succFileText += `[${filename}](${path})\n`;
+            }
+        }
+    });
+    setSelectionFocus(vditor.upload.range);
+    document.execCommand("insertHTML", false, succFileText);
+    vditor.upload.range = getSelection().getRangeAt(0).cloneRange();
+};
+
+
 const uploadFiles =
     async (vditor: IVditor, files: FileList | DataTransferItemList | File[], element?: HTMLInputElement) => {
         // FileList | DataTransferItemList | File[] => File[]
@@ -201,13 +293,12 @@ const uploadFiles =
         for (const key of Object.keys(extraData)) {
             formData.append(key, extraData[key]);
         }
-
         for (let i = 0, iMax = validateResult.length; i < iMax; i++) {
             formData.append(vditor.options.upload.fieldName, validateResult[i]);
+            debugger;
         }
 
         const xhr = new XMLHttpRequest();
-        xhr.open("GET", "http://localhost:8989/admin/upload/policy?title=eqwe1");
         // if (vditor.options.upload.token) {
         //     xhr.setRequestHeader("X-Upload-Token", vditor.options.upload.token);
         // }
@@ -218,41 +309,55 @@ const uploadFiles =
         vditor.upload.isUploading = true;
         // editorElement.setAttribute("contenteditable", "false");
         debugger;
-        xhr.send();
-
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                console.log("STS信息: " + xhr.response)
-                debugger
-                let stsData = JSON.parse(xhr.response).data;
-                let ossStaticHost = stsData.ossStaticHost;
-                var client = new OSS({
-                    accessKeyId: stsData.accessKeyId,
-                    accessKeySecret: stsData.accessKeySecret,
-                    stsToken: stsData.securityToken,
-                    bucket: stsData.bucket,
-                    region: stsData.region
-                })
-                //   文章 名称
-                var title = "我是你爹";
-                // 上传  文件名
-                var timestamp = (new Date()).valueOf();;
-                var filename = timestamp + "." + "png"
-                // 上传相对于整个bucket（图床）路径名
-                var ext = title + "/" + filename
-                // 文章中显示的地址 
-                var filePath = ossStaticHost + title + "/" + filename
-                client.put(ext, validateResult[0]).then((result) => {
-                    // console.log(result)
-                    // console.log(uuid())
-                    // console.log(blob)
+        var uploadResult = new UploadResult();
+        try {
+            xhr.open("GET", "http://localhost:8989/admin/upload/policy?title=eqwe1");
+            xhr.send();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    console.log("STS信息: " + xhr.response)
                     debugger
-                    genUploadedLabel(result, vditor);
+                    let stsData = JSON.parse(xhr.response).data;
+                    let ossStaticHost = stsData.ossStaticHost;
+                    var client = new OSS({
+                        accessKeyId: stsData.accessKeyId,
+                        accessKeySecret: stsData.accessKeySecret,
+                        stsToken: stsData.securityToken,
+                        bucket: stsData.bucket,
+                        region: stsData.region
+                    })
+                    //   文章 名称
+                    var title = "我是你爹";
+                    // // 上传  文件名
+                    // var timestamp = (new Date()).valueOf();;
+                    // var filename = timestamp + "." + "png"
+                    // 文章中显示的地址 
+                    for (let i = 0, iMax = validateResult.length; i < iMax; i++) {
+                        // 上传相对于整个bucket（图床）路径名
+                        let ext = title + "/" + validateResult[i].name.replace(" ", "");
+                        client.put(ext, validateResult[i]).then((result) => {
+                            uploadResult.data.succMap.set(validateResult[i].name, result.url);
+                            if (i == iMax - 1) {
+                                genUploadedLabelOrigin(uploadResult, vditor);
+                                // 上传完毕
+                                vditor.upload.isUploading = false;
+                            }
+                        })
+                    }
+                } else if (xhr.readyState == 4 && xhr.status != 200) {
+                    console.log("获取STS信息出错，请查看控制台输出!")
+                    console.log(xhr.responseText);
+                    uploadResult.fail("获取STS信息出错，请查看控制台输出!");
+                    // 上传完毕
                     vditor.upload.isUploading = false;
-                    // callback(filePath, '')
-                })
-                debugger;
+                }
             }
+        } catch (e) {
+            console.log("上传文件出错，请查看控制台输出!");
+            console.log(e);
+            uploadResult.fail("上传文件出错，请查看控制台输出!");
+            // 上传完毕
+            vditor.upload.isUploading = false;
         }
 
         // const xhr = new XMLHttpRequest();
@@ -304,40 +409,6 @@ const uploadFiles =
         // };
         // xhr.send(formData);
     };
-
-// policy(this.postForm.title).then((response) => {
-//     console.log(response)
-//     const OSS = require('ali-oss')
-//     let ossStaticHost=response.data.ossStaticHost;
-//     try {
-//       var client = OSS({
-//         accessKeyId: response.data.accessKeyId,
-//         accessKeySecret: response.data.accessKeySecret,
-//         stsToken: response.data.securityToken,
-//         bucket: response.data.bucket,
-//         region: response.data.region
-//       })
-//       // 文章 名称
-//       var title = this.postForm.title
-//       // 上传  文件名
-//       var filename=uuid()+"."+blob.type.split('/').pop()
-//       // 上传相对于整个bucket（图床）路径名
-//       var ext=title+"/"+filename
-//       // 文章中显示的地址 
-//       var filePath=ossStaticHost+title+"/"+filename
-//       client.put(ext, blob).then((result) => {
-//         // console.log(result)
-//         // console.log(uuid())
-//         // console.log(blob)
-//         debugger
-//         callback(filePath, '')
-//       })
-//       // console.log(result);
-//       // callback(response.data, '')
-//     } catch (e) {
-//       console.log(e)
-//     }
-//   })
 
 
 export { Upload, uploadFiles };

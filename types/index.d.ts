@@ -355,6 +355,8 @@ interface IUpload {
     multiple?: boolean;
     /** 上传字段名。默认值：file[] */
     fieldName?: string;
+    /** 上传文件用（需要自建后端服务），用来获取oss的地址，校验信息等 **/ 
+    urlToGetOssCredentials?: string,
 
     /** 每次上传前都会重新设置请求头 */
     setHeaders?(): IObject;
@@ -774,3 +776,5 @@ interface ICommentsData {
     id: string;
     top: number;
 }
+
+

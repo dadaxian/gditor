@@ -123,6 +123,8 @@ export class Options {
             multiple: true,
             url: "",
             withCredentials: false,
+            urlToGetOssCredentials: "",
+
         },
         value: "",
         width: "auto",

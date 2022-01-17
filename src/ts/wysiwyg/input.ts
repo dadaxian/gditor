@@ -12,7 +12,6 @@ import {previoueIsEmptyA} from "./inlineTag";
 
 export const input = (vditor: IVditor, range: Range, event?: InputEvent) => {
     let blockElement = hasClosestBlock(range.startContainer);
-
     if (!blockElement) {
         // 使用顶级块元素，应使用 innerHTML
         blockElement = vditor.wysiwyg.element;

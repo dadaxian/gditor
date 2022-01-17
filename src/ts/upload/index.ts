@@ -1,5 +1,4 @@
 import * as OSS from "ali-oss";
-import * as aliOSS from "ali-oss";
 import { getEditorRange, setSelectionFocus } from "../util/selection";
 import { getElement } from "./getElement";
 import { setHeaders } from "./setHeaders";
@@ -14,6 +13,18 @@ class Upload {
         this.isUploading = false;
         this.element = document.createElement("div");
         this.element.className = "vditor-upload";
+    }
+}
+// todo : 优化文件名表示，省去不必要的的字符串处理
+class UploadFile {
+    public originName: string;
+    public ext: string;
+    public timestamp: string;
+    public file: File;
+    constructor(file: File) {
+        const lastIndex = file.name.lastIndexOf(".");
+        this.ext = file.name.substring(lastIndex);
+        this.originName = file.name.substring(0, lastIndex);
     }
 }
 
@@ -49,6 +60,7 @@ const validateFile = (vditor: IVditor, files: File[]) => {
     const options: IOptions = vditor.options;
 
     for (let iMax = files.length, i = 0; i < iMax; i++) {
+        debugger
         const file = files[i];
         let validate = true;
 
@@ -98,74 +110,8 @@ const validateFile = (vditor: IVditor, files: File[]) => {
     return uploadFileList;
 };
 
-const genUploadedLabel = (response: OSS.PutObjectResult, vditor: IVditor) => {
-    const editorElement = getElement(vditor);
-    editorElement.focus();
-    // const response = JSON.parse(responseText);
-    let errorTip = "";
 
-    if (response.res.status != 200) {
-        errorTip = `${response.res.rt}`;
-    }
-
-    // if (response.data.errFiles && response.data.errFiles.length > 0) {
-    //     errorTip = `<ul><li>${errorTip}</li>`;
-    //     response.data.errFiles.forEach((data: string) => {
-    //         const lastIndex = data.lastIndexOf(".");
-    //         const filename = vditor.options.upload.filename(data.substr(0, lastIndex)) + data.substr(lastIndex);
-    //         errorTip += `<li>${filename} ${window.VditorI18n.uploadError}</li>`;
-    //     });
-    //     errorTip += "</ul>";
-    // }
-
-    if (errorTip) {
-        vditor.tip.show(errorTip);
-    } else {
-        vditor.tip.hide();
-    }
-
-    let succFileText = "";
-    const path = response.url;
-    const filename = response.name;
-    var typeStrs = response.name.split(".")
-    const type = "." + typeStrs[typeStrs.length - 1];
-    debugger;
-    if (type.indexOf(".wav") === 0 || type.indexOf(".mp3") === 0 || type.indexOf(".ogg") === 0) {
-        if (vditor.currentMode === "wysiwyg") {
-            succFileText += `<div class="vditor-wysiwyg__block" data-type="html-block"
- data-block="0"><pre><code>&lt;audio controls="controls" src="${path}"&gt;&lt;/audio&gt;</code></pre>\n`;
-        } else if (vditor.currentMode === "ir") {
-            succFileText += `<audio controls="controls" src="${path}"></audio>\n`;
-        } else {
-            succFileText += `[${filename}](${path})\n`;
-        }
-    } else if (type.indexOf(".apng") === 0
-        || type.indexOf(".bmp") === 0
-        || type.indexOf(".gif") === 0
-        || type.indexOf(".ico") === 0 || type.indexOf(".cur") === 0
-        || type.indexOf(".jpg") === 0 || type.indexOf(".jpeg") === 0 || type.indexOf(".jfif") === 0 || type.indexOf(".pjp") === 0 || type.indexOf(".pjpeg") === 0
-        || type.indexOf(".png") === 0
-        || type.indexOf(".svg") === 0
-        || type.indexOf(".webp") === 0) {
-        if (vditor.currentMode === "wysiwyg") {
-            succFileText += `<img alt="${filename}" src="${path}">\n`;
-        } else {
-            succFileText += `![${filename}](${path})\n`;
-        }
-    } else {
-        if (vditor.currentMode === "wysiwyg") {
-            succFileText += `<a href="${path}">${filename}</a>\n`;
-        } else {
-            succFileText += `[${filename}](${path})\n`;
-        }
-    }
-
-    setSelectionFocus(vditor.upload.range);
-    document.execCommand("insertHTML", false, succFileText);
-    vditor.upload.range = getSelection().getRangeAt(0).cloneRange();
-};
-
-const genUploadedLabelOrigin = (response: UploadResult, vditor: IVditor) => {
+const genUploadedLabel = (response: UploadResult, vditor: IVditor) => {
     const editorElement = getElement(vditor);
     editorElement.focus();
     // const response = JSON.parse(responseText);
@@ -195,8 +141,10 @@ const genUploadedLabelOrigin = (response: UploadResult, vditor: IVditor) => {
     response.data.succMap.forEach((value, key) => {
         const path = value;
         const lastIndex = key.lastIndexOf(".");
+        const lastIndexRemoveHash = key.lastIndexOf("-");
         let type = key.substr(lastIndex);
-        const filename = vditor.options.upload.filename(key.substr(0, lastIndex)) + type;
+        debugger
+        const filename = vditor.options.upload.filename(key.substr(0, lastIndexRemoveHash)) + type;
         type = type.toLowerCase();
         if (type.indexOf(".wav") === 0 || type.indexOf(".mp3") === 0 || type.indexOf(".ogg") === 0) {
             if (vditor.currentMode === "wysiwyg") {
@@ -233,9 +181,132 @@ const genUploadedLabelOrigin = (response: UploadResult, vditor: IVditor) => {
     vditor.upload.range = getSelection().getRangeAt(0).cloneRange();
 };
 
+/**
+ * 覆盖原来的文件
+ * @param vditor 
+ * @param files 
+ * @param element 
+ * @param nameFix 
+ * @returns 
+ */
+const uploadFilesWithCover =
+    async (vditor: IVditor, files: FileList | DataTransferItemList | File[],elt:any) => {
+        // FileList | DataTransferItemList | File[] => File[]
+        let fileList = [];
+        debugger
+        const filesMax = vditor.options.upload.multiple === true ? files.length : 1;
+        for (let i = 0; i < filesMax; i++) {
+            let fileItem = files[i];
+            if (fileItem instanceof DataTransferItem) {
+                fileItem = fileItem.getAsFile();
+            }
+            fileList.push(fileItem);
+        }
 
-const uploadFiles =
-    async (vditor: IVditor, files: FileList | DataTransferItemList | File[], element?: HTMLInputElement) => {
+
+        if (vditor.options.upload.handler) {
+            const isValidate = await vditor.options.upload.handler(fileList);
+            if (typeof isValidate === "string") {
+                vditor.tip.show(isValidate);
+                return;
+            }
+            return;
+        }
+
+        if (vditor.options.upload.file) {
+            fileList = await vditor.options.upload.file(fileList);
+        }
+
+
+        if (vditor.options.upload.validate) {
+            const isValidate = vditor.options.upload.validate(fileList);
+            if (typeof isValidate === "string") {
+                vditor.tip.show(isValidate);
+                return;
+            }
+        }
+        const editorElement = getElement(vditor);
+
+        vditor.upload.range = getEditorRange(vditor);
+
+        const validateResult = validateFile(vditor, fileList);
+        if (validateResult.length === 0) {
+            return;
+        }
+
+        const formData = new FormData();
+
+        const extraData = vditor.options.upload.extraData;
+        for (const key of Object.keys(extraData)) {
+            formData.append(key, extraData[key]);
+        }
+        for (let i = 0, iMax = validateResult.length; i < iMax; i++) {
+            formData.append(vditor.options.upload.fieldName, validateResult[i]);
+        }
+
+        const xhr = new XMLHttpRequest();
+        vditor.upload.isUploading = true;
+        var uploadResult = new UploadResult();
+        try {
+            debugger
+            xhr.open("GET", vditor.options.upload.urlToGetOssCredentials+"?title=eqwe1");
+            xhr.setRequestHeader('X-Token' , vditor.options.upload.token);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    console.log("STS信息: " + xhr.response)
+                    let stsData = JSON.parse(xhr.response).data;
+                    debugger
+                    var client = new OSS({
+                        accessKeyId: stsData.accessKeyId,
+                        accessKeySecret: stsData.accessKeySecret,
+                        stsToken: stsData.securityToken,
+                        bucket: stsData.bucket,
+                        region: stsData.region
+                    })
+                    //   文章 名称
+                    var title = "我是你爹";
+                    // 文章中显示的地址 
+                    for (let i = 0, iMax = validateResult.length; i < iMax; i++) {
+
+                        const lastIndex = validateResult[i].name.lastIndexOf(".");
+                        let type = validateResult[i].name.substr(lastIndex);
+                        let originName = validateResult[i].name.substr(0, lastIndex);
+                        // 上传相对于整个bucket（图床）路径名
+                        var filename = originName + type;
+                        // 下面的title是为了再oss存储的时候能够分文件夹存储
+                        var uploadFilename = title + "/" + originName + type;
+                        client.put(uploadFilename, validateResult[i]).then((result) => {
+                            uploadResult.data.succMap.set(filename, result.url);
+                            if (i == iMax - 1) {
+                                // 上传完毕
+                                vditor.upload.isUploading = false;
+                                let timestamp1 = (new Date()).valueOf();
+                                let urlStr =elt.getAttribute("src");
+                                elt.setAttribute("src",urlStr+"?ww="+timestamp1);
+                            }
+                        })
+                    }
+                } else if (xhr.readyState == 4 && xhr.status != 200) {
+                    console.log("获取STS信息出错，请查看控制台输出!")
+                    console.log(xhr.responseText);
+                    uploadResult.fail("获取STS信息出错，请查看控制台输出!");
+                    // 上传完毕
+                    vditor.upload.isUploading = false;
+                }
+            }
+            xhr.send();
+        } catch (e) {
+            console.log("上传文件出错，请查看控制台输出!");
+            console.log(e);
+            uploadResult.fail("上传文件出错，请查看控制台输出!");
+            // 上传完毕
+            vditor.upload.isUploading = false;
+        }
+        console.log("结束");
+    };
+
+    const uploadFiles =
+    async (vditor: IVditor, files: FileList | DataTransferItemList | File[], element?: HTMLInputElement,nameFix?:boolean) => {
         // FileList | DataTransferItemList | File[] => File[]
         let fileList = [];
         const filesMax = vditor.options.upload.multiple === true ? files.length : 1;
@@ -268,6 +339,7 @@ const uploadFiles =
             fileList = await vditor.options.upload.file(fileList);
         }
 
+
         if (vditor.options.upload.validate) {
             const isValidate = vditor.options.upload.validate(fileList);
             if (typeof isValidate === "string") {
@@ -295,30 +367,21 @@ const uploadFiles =
         }
         for (let i = 0, iMax = validateResult.length; i < iMax; i++) {
             formData.append(vditor.options.upload.fieldName, validateResult[i]);
-            debugger;
         }
 
         const xhr = new XMLHttpRequest();
-        // if (vditor.options.upload.token) {
-        //     xhr.setRequestHeader("X-Upload-Token", vditor.options.upload.token);
-        // }
-        // if (vditor.options.upload.withCredentials) {
-        //     xhr.withCredentials = true;
-        // }
-        // setHeaders(vditor, xhr);
         vditor.upload.isUploading = true;
-        // editorElement.setAttribute("contenteditable", "false");
-        debugger;
         var uploadResult = new UploadResult();
         try {
-            xhr.open("GET", "http://localhost:8989/admin/upload/policy?title=eqwe1");
-            xhr.send();
+            debugger
+            xhr.open("GET", vditor.options.upload.urlToGetOssCredentials+"?title=eqwe1");
+            xhr.setRequestHeader('X-Token' , vditor.options.upload.token);
             xhr.onreadystatechange = function () {
                 if (xhr.readyState == 4 && xhr.status == 200) {
                     console.log("STS信息: " + xhr.response)
-                    debugger
                     let stsData = JSON.parse(xhr.response).data;
                     let ossStaticHost = stsData.ossStaticHost;
+                    debugger
                     var client = new OSS({
                         accessKeyId: stsData.accessKeyId,
                         accessKeySecret: stsData.accessKeySecret,
@@ -328,17 +391,22 @@ const uploadFiles =
                     })
                     //   文章 名称
                     var title = "我是你爹";
-                    // // 上传  文件名
-                    // var timestamp = (new Date()).valueOf();;
-                    // var filename = timestamp + "." + "png"
                     // 文章中显示的地址 
                     for (let i = 0, iMax = validateResult.length; i < iMax; i++) {
+                        let timestamp = (new Date()).valueOf();
+
+                        const lastIndex = validateResult[i].name.lastIndexOf(".");
+                        let type = validateResult[i].name.substr(lastIndex);
+                        let originName = validateResult[i].name.substr(0, lastIndex);
                         // 上传相对于整个bucket（图床）路径名
-                        let ext = title + "/" + validateResult[i].name.replace(" ", "");
-                        client.put(ext, validateResult[i]).then((result) => {
-                            uploadResult.data.succMap.set(validateResult[i].name, result.url);
+                        var filename = originName + "-" + timestamp + type;
+                        // 下面的title是为了再oss存储的时候能够分文件夹存储
+                        var uploadFilename = title + "/" + originName.replace(" ", "") + "-" + timestamp + type;
+                        client.put(uploadFilename, validateResult[i]).then((result) => {
+                            uploadResult.data.succMap.set(filename, result.url);
                             if (i == iMax - 1) {
-                                genUploadedLabelOrigin(uploadResult, vditor);
+                                // 全部上传成功后，再编辑器中生成链接并渲染
+                                genUploadedLabel(uploadResult, vditor);
                                 // 上传完毕
                                 vditor.upload.isUploading = false;
                             }
@@ -352,6 +420,7 @@ const uploadFiles =
                     vditor.upload.isUploading = false;
                 }
             }
+            xhr.send();
         } catch (e) {
             console.log("上传文件出错，请查看控制台输出!");
             console.log(e);
@@ -359,56 +428,7 @@ const uploadFiles =
             // 上传完毕
             vditor.upload.isUploading = false;
         }
-
-        // const xhr = new XMLHttpRequest();
-        // xhr.open("POST", vditor.options.upload.url);
-        // if (vditor.options.upload.token) {
-        //     xhr.setRequestHeader("X-Upload-Token", vditor.options.upload.token);
-        // }
-        // if (vditor.options.upload.withCredentials) {
-        //     xhr.withCredentials = true;
-        // }
-        // setHeaders(vditor, xhr);
-        // vditor.upload.isUploading = true;
-        // editorElement.setAttribute("contenteditable", "false");
-        // xhr.onreadystatechange = () => {
-        //     if (xhr.readyState === XMLHttpRequest.DONE) {
-        //         vditor.upload.isUploading = false;
-        //         editorElement.setAttribute("contenteditable", "true");
-        //         if (xhr.status >= 200 && xhr.status < 300) {
-        //             if (vditor.options.upload.success) {
-        //                 vditor.options.upload.success(editorElement, xhr.responseText);
-        //             } else {
-        //                 let responseText = xhr.responseText;
-        //                 if (vditor.options.upload.format) {
-        //                     responseText = vditor.options.upload.format(files as File [], xhr.responseText);
-        //                 }
-        //                 genUploadedLabel(responseText, vditor);
-        //             }
-        //         } else {
-        //             if (vditor.options.upload.error) {
-        //                 vditor.options.upload.error(xhr.responseText);
-        //             } else {
-        //                 vditor.tip.show(xhr.responseText);
-        //             }
-        //         }
-        //         if (element) {
-        //             element.value = "";
-        //         }
-        //         vditor.upload.element.style.display = "none";
-        //     }
-        // };
-        // xhr.upload.onprogress = (event: ProgressEvent) => {
-        //     if (!event.lengthComputable) {
-        //         return;
-        //     }
-        //     const progress = event.loaded / event.total * 100;
-        //     vditor.upload.element.style.display = "block";
-        //     const progressBar = vditor.upload.element;
-        //     progressBar.style.width = progress + "%";
-        // };
-        // xhr.send(formData);
+        console.log("结束");
     };
 
-
-export { Upload, uploadFiles };
+export { Upload, uploadFiles, uploadFilesWithCover };

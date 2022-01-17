@@ -201,6 +201,7 @@ class WYSIWYG {
     }
 
     private copy(event: ClipboardEvent, vditor: IVditor) {
+        debugger
         const range = getSelection().getRangeAt(0);
         if (range.toString() === "") {
             return;
@@ -293,6 +294,7 @@ class WYSIWYG {
         });
 
         this.element.addEventListener("paste", (event: ClipboardEvent & { target: HTMLElement }) => {
+            debugger
             paste(vditor, event, {
                 pasteCode: (code: string) => {
                     const range = getEditorRange(vditor);

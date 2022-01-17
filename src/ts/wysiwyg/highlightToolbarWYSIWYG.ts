@@ -1,10 +1,10 @@
-import {Constants} from "../constants";
-import {disableToolbar} from "../toolbar/setToolbar";
-import {enableToolbar} from "../toolbar/setToolbar";
-import {removeCurrentToolbar} from "../toolbar/setToolbar";
-import {setCurrentToolbar} from "../toolbar/setToolbar";
-import {isCtrl, updateHotkeyTip} from "../util/compatibility";
-import {scrollCenter} from "../util/editorCommonEvent";
+import { Constants } from "../constants";
+import { disableToolbar } from "../toolbar/setToolbar";
+import { enableToolbar } from "../toolbar/setToolbar";
+import { removeCurrentToolbar } from "../toolbar/setToolbar";
+import { setCurrentToolbar } from "../toolbar/setToolbar";
+import { isCtrl, updateHotkeyTip } from "../util/compatibility";
+import { scrollCenter } from "../util/editorCommonEvent";
 import {
     deleteColumn,
     deleteRow,
@@ -22,15 +22,16 @@ import {
     hasClosestByHeadings,
     hasClosestByTag,
 } from "../util/hasClosestByHeadings";
-import {processCodeRender} from "../util/processCode";
+import { processCodeRender } from "../util/processCode";
 import {
     getEditorRange,
     selectIsEditor,
     setRangeByWbr,
     setSelectionFocus,
 } from "../util/selection";
-import {afterRenderEvent} from "./afterRenderEvent";
-import {removeBlockElement} from "./processKeydown";
+import { afterRenderEvent } from "./afterRenderEvent";
+import { removeBlockElement } from "./processKeydown";
+import { DiagramEditor } from "../diagramEditor/index";
 
 export const highlightToolbarWYSIWYG = (vditor: IVditor) => {
     clearTimeout(vditor.wysiwyg.hlToolbarTimeoutId);
@@ -56,7 +57,7 @@ export const highlightToolbarWYSIWYG = (vditor: IVditor) => {
                 range.startOffset >= typeElement.childNodes.length
                     ? typeElement.childNodes.length - 1
                     : range.startOffset
-                ] as HTMLElement;
+            ] as HTMLElement;
         }
 
         const footnotesElement = hasClosestByAttribute(typeElement, "data-type", "footnotes-block");
@@ -1103,10 +1104,28 @@ export const genImagePopover = (event: Event, vditor: IVditor) => {
     title.onkeydown = (elementEvent) => {
         removeBlockElement(vditor, elementEvent);
     };
+
+    const editWrap = document.createElement("button");
+    editWrap.setAttribute("type", "button");
+    editWrap.setAttribute("aria-label", "编辑图片");
+    editWrap.setAttribute("data-type", "insertRow");
+    editWrap.innerHTML =
+        '<svg><use xlink:href="#vditor-icon-edit"></use></svg>';
+    editWrap.className =
+        "vditor-icon vditor-tooltipped vditor-tooltipped__n";
+    editWrap.onclick = () => {
+        debugger
+        vditor.wysiwyg.popover.setAttribute("style", "display:none");
+        var editor = new DiagramEditor("http://localhost:8080/drawio/?embed=1&ui=atlas&spin=1&proto=json&configure=1");
+        editor.load();
+        editor.edit(imgElement);
+    };
+
     genClose(imgElement, vditor);
     vditor.wysiwyg.popover.insertAdjacentElement("beforeend", inputWrap);
     vditor.wysiwyg.popover.insertAdjacentElement("beforeend", altWrap);
     vditor.wysiwyg.popover.insertAdjacentElement("beforeend", titleWrap);
+    vditor.wysiwyg.popover.insertAdjacentElement("beforeend", editWrap);
 
     setPopoverPosition(vditor, imgElement);
 };

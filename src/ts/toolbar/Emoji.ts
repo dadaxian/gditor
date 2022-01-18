@@ -42,7 +42,6 @@ data-value=":${key}: " data-key=":${key}:" class="vditor-emojis__icon" src="${em
         panelElement.querySelectorAll(".vditor-emojis button").forEach((element: HTMLElement) => {
             element.addEventListener(getEventName(), (event: Event) => {
                 event.preventDefault();
-                debugger
                 const value = element.getAttribute("data-value");
                 const range = getEditorRange(vditor);
                 let html = value;

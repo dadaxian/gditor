@@ -22,6 +22,7 @@ window.VditorI18n = {
   'downloadTip': '该浏览器不支持下载功能',
   'edit': '编辑',
   'edit-mode': '切换编辑模式',
+  'special-function': '扩展功能',
   'emoji': '表情',
   'export': '导出',
   'fileTypeError': '文件类型不允许上传，请压缩后再试',
@@ -82,4 +83,5 @@ window.VditorI18n = {
   'uploadError': '上传错误',
   'uploading': '上传中...',
   'wysiwyg': '所见即所得',
+  'draw': '画板',
 }

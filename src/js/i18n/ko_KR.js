@@ -22,6 +22,7 @@ window.VditorI18n = {
   'downloadTip': '브라우저가 다운로드 기능을 지원하지 않습니다',
   'edit': '수정',
   'edit-mode': '편집모드',
+  'special-function': '확장',
   'emoji': '이모지',
   'export': '내보내기',
   'fileTypeError': '지원하지않습니다.',
@@ -82,4 +83,5 @@ window.VditorI18n = {
   'uploadError': '업로드 실패',
   'uploading': '업로드중...',
   'wysiwyg': '위지위그',
+  'draw': '그리다',
 }

@@ -146,7 +146,7 @@ class Vditor extends VditorMethod {
         hidePanel(this.vditor, ["subToolbar", "hint", "popover"]);
         disableToolbar(
             this.vditor.toolbar.elements,
-            Constants.EDIT_TOOLBARS.concat(["undo", "redo", "fullscreen", "edit-mode"]),
+            Constants.EDIT_TOOLBARS.concat(["undo", "redo", "fullscreen", "edit-mode","special-function"]),
         );
         this.vditor[this.vditor.currentMode].element.setAttribute(
             "contenteditable",
@@ -158,7 +158,7 @@ class Vditor extends VditorMethod {
     public enable() {
         enableToolbar(
             this.vditor.toolbar.elements,
-            Constants.EDIT_TOOLBARS.concat(["undo", "redo", "fullscreen", "edit-mode"]),
+            Constants.EDIT_TOOLBARS.concat(["undo", "redo", "fullscreen", "edit-mode","special-function"]),
         );
         this.vditor.undo.resetIcon(this.vditor);
         this.vditor[this.vditor.currentMode].element.setAttribute("contenteditable", "true");

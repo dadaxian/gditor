@@ -22,6 +22,7 @@ window.VditorI18n = {
   'downloadTip': 'The browser does not support the download function',
   'edit': 'Edit',
   'edit-mode': 'Toggle Edit Mode',
+  'special-function': 'Extended Functions',
   'emoji': 'Emoji',
   'export': 'Export',
   'fileTypeError': 'file type is error',
@@ -82,4 +83,5 @@ window.VditorI18n = {
   'uploadError': 'upload error',
   'uploading': 'uploading...',
   'wysiwyg': 'WYSIWYG',
+  'draw': 'draw',
 }

@@ -5,7 +5,7 @@ import { getElement } from "./getElement";
 import { setHeaders } from "./setHeaders";
 
 
-class DiagramEditor1 {
+class DiagramEditor {
     public frame : HTMLIFrameElement;
     public title : string;
     public data :string;
@@ -57,7 +57,6 @@ class DiagramEditor1 {
      * Static method to edit the diagram in the given img or object.
      */
     public editElement1(elt :any, config :any, ui :any, done :any, urlParams :any) {
-        debugger
         if (!elt.diagramEditorStarting) {
             elt.diagramEditorStarting = true;
 

@@ -93,6 +93,7 @@ export class Options {
             "|",
             "fullscreen",
             "edit-mode",
+            "special-function",
             {
                 name: "more",
                 toolbar: [
@@ -354,6 +355,11 @@ export class Options {
             {
                 icon: '<svg><use xlink:href="#vditor-icon-edit"></use></svg>',
                 name: "edit-mode",
+                tipPosition: "nw",
+            },
+            {
+                icon: '<svg><use xlink:href="#vditor-icon-edit"></use></svg>',
+                name: "special-function",
                 tipPosition: "nw",
             },
             {

@@ -34,6 +34,7 @@ if (window.innerWidth < 768) {
     'redo',
     '|',
     'edit-mode',
+    'special-function',
     'content-theme',
     'code-theme',
     'export',
@@ -123,6 +124,8 @@ const initVditor = (language) => {
     tab: '\t',
     upload: {
       accept: 'image/*,.mp3, .wav, .rar',
+      edit:".svg, .png",
+      editUrl:"http://110.42.188.82:8089?embed=1&ui=atlas&spin=1&proto=json&configure=1&lang=zh",
       token: 'test',
       url: '/api/upload/editor',
       linkToImgUrl: '/api/upload/fetch',

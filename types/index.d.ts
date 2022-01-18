@@ -258,6 +258,7 @@ interface ITips {
     downloadTip: string;
     edit: string;
     "edit-mode": string;
+    "special-function": string;
     emoji: string;
     export: string;
     fileTypeError: string;
@@ -312,6 +313,7 @@ interface ITips {
     uploadError: string;
     uploading: string;
     wysiwyg: string;
+    draw: string;
 }
 
 interface II18n {
@@ -345,6 +347,10 @@ interface IUpload {
     token?: string;
     /** 文件上传类型，同 [input accept](https://www.w3schools.com/tags/att_input_accept.asp) */
     accept?: string;
+    /** 可以编辑的文件类型, 英文逗号隔开逗号*/
+    edit?: string;
+    /** 编辑文件的网页地址 */
+    editUrl?: string;
     /** 跨站点访问控制。默认值: false */
     withCredentials?: boolean;
     /** 请求头设置 */
@@ -355,7 +361,7 @@ interface IUpload {
     multiple?: boolean;
     /** 上传字段名。默认值：file[] */
     fieldName?: string;
-    /** 上传文件用（需要自建后端服务），用来获取oss的地址，校验信息等 **/ 
+    /** 上传文件用（需要自建后端服务），用来获取oss的地址，校验信息等 **/
     urlToGetOssCredentials?: string,
 
     /** 每次上传前都会重新设置请求头 */

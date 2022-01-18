@@ -1105,27 +1105,67 @@ export const genImagePopover = (event: Event, vditor: IVditor) => {
         removeBlockElement(vditor, elementEvent);
     };
 
-    const editWrap = document.createElement("button");
-    editWrap.setAttribute("type", "button");
-    editWrap.setAttribute("aria-label", "编辑图片");
-    editWrap.setAttribute("data-type", "insertRow");
-    editWrap.innerHTML =
-        '<svg><use xlink:href="#vditor-icon-edit"></use></svg>';
-    editWrap.className =
-        "vditor-icon vditor-tooltipped vditor-tooltipped__n";
-    editWrap.onclick = () => {
-        debugger
-        vditor.wysiwyg.popover.setAttribute("style", "display:none");
-        var editor = new DiagramEditor("http://localhost:8080/drawio/?embed=1&ui=atlas&spin=1&proto=json&configure=1");
-        editor.load();
-        editor.edit(imgElement);
-    };
-
     genClose(imgElement, vditor);
     vditor.wysiwyg.popover.insertAdjacentElement("beforeend", inputWrap);
     vditor.wysiwyg.popover.insertAdjacentElement("beforeend", altWrap);
     vditor.wysiwyg.popover.insertAdjacentElement("beforeend", titleWrap);
-    vditor.wysiwyg.popover.insertAdjacentElement("beforeend", editWrap);
+
+    debugger
+    // 如果可以编辑则加上编辑按钮
+    if(isImgEditEnable(imgElement,vditor)){
+        const editWrap = document.createElement("button");
+        editWrap.setAttribute("type", "button");
+        editWrap.setAttribute("aria-label", "编辑图片");
+        editWrap.setAttribute("data-type", "insertRow");
+        editWrap.innerHTML =
+            '<svg><use xlink:href="#vditor-icon-edit"></use></svg>';
+        editWrap.className =
+            "vditor-icon vditor-tooltipped vditor-tooltipped__n";
+        editWrap.onclick = () => {
+            vditor.wysiwyg.popover.setAttribute("style", "display:none");
+            var editor = new DiagramEditor(vditor);
+            editor.load();
+            editor.edit(imgElement);
+        };
+        vditor.wysiwyg.popover.insertAdjacentElement("beforeend", editWrap);
+    }
 
     setPopoverPosition(vditor, imgElement);
 };
+
+/**
+ * 判断<img>是否可以编辑
+ */
+function isImgEditEnable(elt: any, vditor: IVditor) {
+    /* 是否添加编辑按钮 */
+    // 获取图片src文件的类型
+    var srcURL = new URL(elt.getAttribute("src"));
+    // URL {origin: 'http://www.baidu.com', protocol: 'http:', username: '', password: '', host: 'www.baidu.com', …}
+    // hash: ""
+    // host: "www.baidu.com"
+    // hostname: "www.baidu.com"
+    // href: "http://www.baidu.com/ww.svg?ww=1"
+    // origin: "http://www.baidu.com"
+    // password: ""
+    // pathname: "/ww.svg"
+    // port: ""
+    // protocol: "http:"
+    // search: "?ww=1"
+    // searchParams: URLSearchParams {}
+    // username: ""
+    var indexOfPoint = srcURL.pathname.lastIndexOf(".");
+    if (indexOfPoint != -1) {
+        var ext = srcURL.pathname.substring(indexOfPoint);
+        return vditor.options.upload.edit.split(",").some((item) => {
+            const type = item.trim();
+            if (type.indexOf(".") === 0) {
+                if (ext.toLowerCase() === type.toLowerCase()) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    } else {
+        return false;
+    }
+}

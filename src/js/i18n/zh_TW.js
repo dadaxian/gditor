@@ -21,7 +21,7 @@ window.VditorI18n = {
   'down': '下',
   'downloadTip': '該瀏覽器不支持下載功能',
   'edit': '編輯',
-  'edit-mode': '切換編輯模式',
+  'special-function': '擴展功能',
   'emoji': '表情',
   'export': '匯出',
   'fileTypeError': '檔案類型不允許上傳',
@@ -82,4 +82,5 @@ window.VditorI18n = {
   'uploadError': '上傳錯誤',
   'uploading': '上傳中...',
   'wysiwyg': '所見即所得',
+  'draw': '畫圖',
 }

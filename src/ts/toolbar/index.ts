@@ -1,31 +1,32 @@
-import {getEventName} from "../util/compatibility";
-import {Both} from "./Both";
-import {Br} from "./Br";
-import {CodeTheme} from "./CodeTheme";
-import {ContentTheme} from "./ContentTheme";
-import {Counter} from "./Counter";
-import {Custom} from "./Custom";
-import {Devtools} from "./Devtools";
-import {Divider} from "./Divider";
-import {EditMode} from "./EditMode";
-import {Emoji} from "./Emoji";
-import {Export} from "./Export";
-import {Fullscreen} from "./Fullscreen";
-import {Headings} from "./Headings";
-import {Help} from "./Help";
-import {Indent} from "./Indent";
-import {Info} from "./Info";
-import {InsertAfter} from "./InsertAfter";
-import {InsertBefore} from "./InsertBefore";
-import {MenuItem} from "./MenuItem";
-import {Outdent} from "./Outdent";
-import {Outline} from "./Outline";
-import {Preview} from "./Preview";
-import {Record} from "./Record";
-import {Redo} from "./Redo";
-import {toggleSubMenu} from "./setToolbar";
-import {Undo} from "./Undo";
-import {Upload} from "./Upload";
+import { getEventName } from "../util/compatibility";
+import { Both } from "./Both";
+import { Br } from "./Br";
+import { CodeTheme } from "./CodeTheme";
+import { ContentTheme } from "./ContentTheme";
+import { Counter } from "./Counter";
+import { Custom } from "./Custom";
+import { Devtools } from "./Devtools";
+import { Divider } from "./Divider";
+import { EditMode } from "./EditMode";
+import {SprcialFuntion} from "./SpecialFunction";
+import { Emoji } from "./Emoji";
+import { Export } from "./Export";
+import { Fullscreen } from "./Fullscreen";
+import { Headings } from "./Headings";
+import { Help } from "./Help";
+import { Indent } from "./Indent";
+import { Info } from "./Info";
+import { InsertAfter } from "./InsertAfter";
+import { InsertBefore } from "./InsertBefore";
+import { MenuItem } from "./MenuItem";
+import { Outdent } from "./Outdent";
+import { Outline } from "./Outline";
+import { Preview } from "./Preview";
+import { Record } from "./Record";
+import { Redo } from "./Redo";
+import { toggleSubMenu } from "./setToolbar";
+import { Undo } from "./Undo";
+import { Upload } from "./Upload";
 
 export class Toolbar {
     public elements: { [key: string]: HTMLElement };
@@ -128,6 +129,9 @@ export class Toolbar {
                 break;
             case "edit-mode":
                 menuItemObj = new EditMode(vditor, menuItem);
+                break;
+            case "special-function":
+                menuItemObj = new SprcialFuntion(vditor, menuItem);
                 break;
             case "devtools":
                 menuItemObj = new Devtools(vditor, menuItem);

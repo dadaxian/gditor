@@ -60,7 +60,6 @@ const validateFile = (vditor: IVditor, files: File[]) => {
     const options: IOptions = vditor.options;
 
     for (let iMax = files.length, i = 0; i < iMax; i++) {
-        debugger
         const file = files[i];
         let validate = true;
 
@@ -143,7 +142,6 @@ const genUploadedLabel = (response: UploadResult, vditor: IVditor) => {
         const lastIndex = key.lastIndexOf(".");
         const lastIndexRemoveHash = key.lastIndexOf("-");
         let type = key.substr(lastIndex);
-        debugger
         const filename = vditor.options.upload.filename(key.substr(0, lastIndexRemoveHash)) + type;
         type = type.toLowerCase();
         if (type.indexOf(".wav") === 0 || type.indexOf(".mp3") === 0 || type.indexOf(".ogg") === 0) {
@@ -164,7 +162,7 @@ const genUploadedLabel = (response: UploadResult, vditor: IVditor) => {
             || type.indexOf(".svg") === 0
             || type.indexOf(".webp") === 0) {
             if (vditor.currentMode === "wysiwyg") {
-                succFileText += `<img alt="${filename}" src="${path}">\n`;
+                succFileText += `<img alt="${filename}" src="${path}" crossorigin='anonymous'>\n`;
             } else {
                 succFileText += `![${filename}](${path})\n`;
             }
@@ -182,6 +180,127 @@ const genUploadedLabel = (response: UploadResult, vditor: IVditor) => {
 };
 
 /**
+ * 上传新增画图
+ * @param vditor 
+ * @param files 
+ * @param element 
+ * @returns 
+ */
+const uploadFilesWithNew =
+    async (vditor: IVditor, files: FileList | DataTransferItemList | File[]) => {
+        // FileList | DataTransferItemList | File[] => File[]
+        let fileList = [];
+        const filesMax = vditor.options.upload.multiple === true ? files.length : 1;
+        for (let i = 0; i < filesMax; i++) {
+            let fileItem = files[i];
+            if (fileItem instanceof DataTransferItem) {
+                fileItem = fileItem.getAsFile();
+            }
+            fileList.push(fileItem);
+        }
+
+
+        if (vditor.options.upload.handler) {
+            const isValidate = await vditor.options.upload.handler(fileList);
+            if (typeof isValidate === "string") {
+                vditor.tip.show(isValidate);
+                return;
+            }
+            return;
+        }
+
+        if (vditor.options.upload.file) {
+            fileList = await vditor.options.upload.file(fileList);
+        }
+
+
+        if (vditor.options.upload.validate) {
+            const isValidate = vditor.options.upload.validate(fileList);
+            if (typeof isValidate === "string") {
+                vditor.tip.show(isValidate);
+                return;
+            }
+        }
+
+        vditor.upload.range = getEditorRange(vditor);
+
+        const validateResult = validateFile(vditor, fileList);
+        if (validateResult.length === 0) {
+            return;
+        }
+
+        const formData = new FormData();
+
+        const extraData = vditor.options.upload.extraData;
+        for (const key of Object.keys(extraData)) {
+            formData.append(key, extraData[key]);
+        }
+        for (let i = 0, iMax = validateResult.length; i < iMax; i++) {
+            formData.append(vditor.options.upload.fieldName, validateResult[i]);
+        }
+
+        const xhr = new XMLHttpRequest();
+        vditor.upload.isUploading = true;
+        var uploadResult = new UploadResult();
+        try {
+            xhr.open("GET", vditor.options.upload.urlToGetOssCredentials + "?title=eqwe1");
+            xhr.setRequestHeader('X-Token', vditor.options.upload.token);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    let stsData = JSON.parse(xhr.response).data;
+                    var client = new OSS({
+                        accessKeyId: stsData.accessKeyId,
+                        accessKeySecret: stsData.accessKeySecret,
+                        stsToken: stsData.securityToken,
+                        bucket: stsData.bucket,
+                        region: stsData.region
+                    })
+                    //   文章 名称
+                    var title = "我是你爹";
+                    // 文章中显示的地址 
+                    for (let i = 0, iMax = validateResult.length; i < iMax; i++) {
+                        let timestamp = (new Date()).valueOf();
+                        const lastIndex = validateResult[i].name.lastIndexOf(".");
+                        let type = validateResult[i].name.substr(lastIndex);
+                        let originName = validateResult[i].name.substr(0, lastIndex);
+                        // 上传相对于整个bucket（图床）路径名
+                        var filename = originName + "-" + timestamp + type;
+                        // 下面的title是为了再oss存储的时候能够分文件夹存储
+                        var uploadFilename = title + "/" + originName.replace(" ", "") + "-" + timestamp + type;
+                        // 下面的title是为了再oss存储的时候能够分文件夹存储
+                        var uploadFilename = title + "/" + originName + type;
+                        client.put(uploadFilename, validateResult[i]).then((result) => {
+                            uploadResult.data.succMap.set(filename, result.url);
+                            if (i == iMax - 1) {
+                                // 全部上传成功后，再编辑器中生成链接并渲染
+                                genUploadedLabel(uploadResult, vditor);
+                                // 上传完毕
+                                vditor.upload.isUploading = false;
+                            }
+                        })
+                    }
+                } else if (xhr.readyState == 4 && xhr.status != 200) {
+                    console.log("获取STS信息出错，请查看控制台输出!")
+                    console.log(xhr.responseText);
+                    uploadResult.fail("获取STS信息出错，请查看控制台输出!");
+                    // 上传完毕
+                    vditor.upload.isUploading = false;
+                }
+            }
+            xhr.send();
+        } catch (e) {
+            console.log("上传文件出错，请查看控制台输出!");
+            console.log(e);
+            uploadResult.fail("上传文件出错，请查看控制台输出!");
+            // 上传完毕
+            vditor.upload.isUploading = false;
+        }
+        console.log("结束");
+    };
+
+
+
+/**
  * 覆盖原来的文件
  * @param vditor 
  * @param files 
@@ -190,10 +309,9 @@ const genUploadedLabel = (response: UploadResult, vditor: IVditor) => {
  * @returns 
  */
 const uploadFilesWithCover =
-    async (vditor: IVditor, files: FileList | DataTransferItemList | File[],elt:any) => {
+    async (vditor: IVditor, files: FileList | DataTransferItemList | File[], elt: any) => {
         // FileList | DataTransferItemList | File[] => File[]
         let fileList = [];
-        debugger
         const filesMax = vditor.options.upload.multiple === true ? files.length : 1;
         for (let i = 0; i < filesMax; i++) {
             let fileItem = files[i];
@@ -248,14 +366,11 @@ const uploadFilesWithCover =
         vditor.upload.isUploading = true;
         var uploadResult = new UploadResult();
         try {
-            debugger
-            xhr.open("GET", vditor.options.upload.urlToGetOssCredentials+"?title=eqwe1");
-            xhr.setRequestHeader('X-Token' , vditor.options.upload.token);
+            xhr.open("GET", vditor.options.upload.urlToGetOssCredentials + "?title=eqwe1");
+            xhr.setRequestHeader('X-Token', vditor.options.upload.token);
             xhr.onreadystatechange = function () {
                 if (xhr.readyState == 4 && xhr.status == 200) {
-                    console.log("STS信息: " + xhr.response)
                     let stsData = JSON.parse(xhr.response).data;
-                    debugger
                     var client = new OSS({
                         accessKeyId: stsData.accessKeyId,
                         accessKeySecret: stsData.accessKeySecret,
@@ -281,8 +396,9 @@ const uploadFilesWithCover =
                                 // 上传完毕
                                 vditor.upload.isUploading = false;
                                 let timestamp1 = (new Date()).valueOf();
-                                let urlStr =elt.getAttribute("src");
-                                elt.setAttribute("src",urlStr+"?ww="+timestamp1);
+                                let urlStr = elt.getAttribute("src");
+                                var originUrl = new URL(urlStr);
+                                elt.setAttribute("src", originUrl.origin + originUrl.pathname + "?ww=" + timestamp1);
                             }
                         })
                     }
@@ -305,8 +421,8 @@ const uploadFilesWithCover =
         console.log("结束");
     };
 
-    const uploadFiles =
-    async (vditor: IVditor, files: FileList | DataTransferItemList | File[], element?: HTMLInputElement,nameFix?:boolean) => {
+const uploadFiles =
+    async (vditor: IVditor, files: FileList | DataTransferItemList | File[], element?: HTMLInputElement) => {
         // FileList | DataTransferItemList | File[] => File[]
         let fileList = [];
         const filesMax = vditor.options.upload.multiple === true ? files.length : 1;
@@ -339,7 +455,6 @@ const uploadFilesWithCover =
             fileList = await vditor.options.upload.file(fileList);
         }
 
-
         if (vditor.options.upload.validate) {
             const isValidate = vditor.options.upload.validate(fileList);
             if (typeof isValidate === "string") {
@@ -347,7 +462,6 @@ const uploadFilesWithCover =
                 return;
             }
         }
-        const editorElement = getElement(vditor);
 
         vditor.upload.range = getEditorRange(vditor);
 
@@ -373,15 +487,13 @@ const uploadFilesWithCover =
         vditor.upload.isUploading = true;
         var uploadResult = new UploadResult();
         try {
-            debugger
-            xhr.open("GET", vditor.options.upload.urlToGetOssCredentials+"?title=eqwe1");
-            xhr.setRequestHeader('X-Token' , vditor.options.upload.token);
+            xhr.open("GET", vditor.options.upload.urlToGetOssCredentials + "?title=eqwe1");
+            xhr.setRequestHeader('X-Token', vditor.options.upload.token);
             xhr.onreadystatechange = function () {
                 if (xhr.readyState == 4 && xhr.status == 200) {
                     console.log("STS信息: " + xhr.response)
                     let stsData = JSON.parse(xhr.response).data;
                     let ossStaticHost = stsData.ossStaticHost;
-                    debugger
                     var client = new OSS({
                         accessKeyId: stsData.accessKeyId,
                         accessKeySecret: stsData.accessKeySecret,
@@ -431,4 +543,4 @@ const uploadFilesWithCover =
         console.log("结束");
     };
 
-export { Upload, uploadFiles, uploadFilesWithCover };
+export { Upload, uploadFiles, uploadFilesWithCover, uploadFilesWithNew };

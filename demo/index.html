@@ -93,7 +93,6 @@
 		var name = null;
 
 		function edit(elt) {
-            debugger
 			var iframe = document.createElement('iframe');
 			iframe.setAttribute('frameborder', '0');
 
@@ -115,7 +114,6 @@
 			var receive = function (evt) {
 				if (evt.data.length > 0) {
 					var msg = JSON.parse(evt.data);
-					debugger;
 					// If configure=1 URL parameter is used the application
 					// waits for this message. For configuration options see
 					// https://desk.draw.io/support/solutions/articles/16000058316
@@ -179,7 +177,6 @@
 		};
 
 		function load() {
-            debugger
 			initial = document.getElementById('diagram').innerHTML;
 			start();
 		};
@@ -202,7 +199,7 @@
 
 </head>
 <body>
-
+<div>ddddddd</div>
 <div>
     <table id="wrapper">
 		<tr>

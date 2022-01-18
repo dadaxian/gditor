@@ -82,4 +82,5 @@ window.VditorI18n = {
   'uploadError': 'Ошибка загрузки',
   'uploading': 'Загрузка...',
   'wysiwyg': 'Редактор WYSIWYG',
+  'draw': 'рисовать',
 }

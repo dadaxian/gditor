@@ -1109,8 +1109,6 @@ export const genImagePopover = (event: Event, vditor: IVditor) => {
     vditor.wysiwyg.popover.insertAdjacentElement("beforeend", inputWrap);
     vditor.wysiwyg.popover.insertAdjacentElement("beforeend", altWrap);
     vditor.wysiwyg.popover.insertAdjacentElement("beforeend", titleWrap);
-
-    debugger
     // 如果可以编辑则加上编辑按钮
     if(isImgEditEnable(imgElement,vditor)){
         const editWrap = document.createElement("button");

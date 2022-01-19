@@ -1,6 +1,6 @@
-import {Constants} from "../constants";
-import {hidePanel} from "../toolbar/setToolbar";
-import {isCtrl, isFirefox} from "../util/compatibility";
+import { Constants } from "../constants";
+import { hidePanel } from "../toolbar/setToolbar";
+import { isCtrl, isFirefox } from "../util/compatibility";
 import {
     blurEvent,
     copyEvent, cutEvent, dblclickEvent,
@@ -10,27 +10,28 @@ import {
     scrollCenter,
     selectEvent,
 } from "../util/editorCommonEvent";
-import {isHeadingMD, isHrMD, paste} from "../util/fixBrowserBehavior";
+import { isHeadingMD, isHrMD, paste } from "../util/fixBrowserBehavior";
 import {
     hasClosestBlock, hasClosestByAttribute,
     hasClosestByClassName, hasClosestByMatchTag,
 } from "../util/hasClosest";
-import {hasClosestByHeadings} from "../util/hasClosestByHeadings";
+import { hasClosestByHeadings } from "../util/hasClosestByHeadings";
 import {
     getCursorPosition,
     getEditorRange,
     getSelectPosition,
     setRangeByWbr,
 } from "../util/selection";
-import {clickToc, renderToc} from "../util/toc";
-import {afterRenderEvent} from "./afterRenderEvent";
-import {genImagePopover, genLinkRefPopover, highlightToolbarWYSIWYG} from "./highlightToolbarWYSIWYG";
-import {getRenderElementNextNode, modifyPre} from "./inlineTag";
-import {input} from "./input";
-import {showCode} from "./showCode";
+import { clickToc, renderToc } from "../util/toc";
+import { afterRenderEvent } from "./afterRenderEvent";
+import { genImagePopover, genLinkRefPopover, highlightToolbarWYSIWYG } from "./highlightToolbarWYSIWYG";
+import { getRenderElementNextNode, modifyPre } from "./inlineTag";
+import { input } from "./input";
+import { showCode } from "./showCode";
 
 class WYSIWYG {
     public range: Range;
+    public titleTextArea: HTMLTextAreaElement;
     public element: HTMLPreElement;
     public popover: HTMLDivElement;
     public selectPopover: HTMLDivElement;
@@ -45,19 +46,30 @@ class WYSIWYG {
         const divElement = document.createElement("div");
         divElement.className = "vditor-wysiwyg";
 
-        divElement.innerHTML = `<pre class="vditor-reset" placeholder="${vditor.options.placeholder}"
- contenteditable="true" spellcheck="false"></pre>
-<div class="vditor-panel vditor-panel--none"></div>
-<div class="vditor-panel vditor-panel--none">
-    <button type="button" aria-label="${window.VditorI18n.comment}" class="vditor-icon vditor-tooltipped vditor-tooltipped__n">
-        <svg><use xlink:href="#vditor-icon-comment"></use></svg>
-    </button>
-</div>`;
+        divElement.innerHTML =
+            `
+            <div class="vditor-title" >
+                <div class="ne-editor-extra-box">
+                    <div class="lake-title-editor" style="margin-top: 33px;">
+                        <textarea id="titleAreaInput" data-testid="input" placeholder="请输入标题" tabindex="1" rows="1"
+                            class="ant-input lake-title" style="height: 50px; max-height: 9.0072e+15px; resize: none;"></textarea>
+                    </div>
+                </div>
+            </div>
+            <pre id="preitem" class="vditor-reset" placeholder="${vditor.options.placeholder}"
+                contenteditable="true" spellcheck="false">
+            </pre>
+            <div class="vditor-panel vditor-panel--none"></div>
+            <div class="vditor-panel vditor-panel--none">
+                <button type="button" aria-label="${window.VditorI18n.comment}" class="vditor-icon vditor-tooltipped vditor-tooltipped__n">
+                <svg><use xlink:href="#vditor-icon-comment"></use></svg>
+                </button>
+            </div>
+            `;
 
-        this.element = divElement.firstElementChild as HTMLPreElement;
-        this.popover = divElement.firstElementChild.nextElementSibling as HTMLDivElement;
+        this.element = divElement.firstElementChild.nextElementSibling as HTMLPreElement;
+        this.popover = divElement.firstElementChild.nextElementSibling.nextElementSibling as HTMLDivElement;
         this.selectPopover = divElement.lastElementChild as HTMLDivElement;
-
         this.bindEvent(vditor);
 
         focusEvent(vditor, this.element);
@@ -145,6 +157,82 @@ class WYSIWYG {
                 this.hideComment();
             };
         }
+
+        // 设置标题部分自适应高度
+        this.titleTextArea = divElement.getElementsByTagName("textarea").item(0);
+        this.autoTextarea(this.titleTextArea,this.titleTextArea.style.height.substring(0,this.titleTextArea.style.length-1));// 调用
+    }
+
+    public autoTextarea(elem: any,minHeight:any, extra?: any, maxHeight?: any) {
+        extra = extra || 0;
+        var isFirefox = navigator.userAgent.indexOf("Firefox") > -1;
+        var isOpera = navigator.userAgent.indexOf("Opera") > -1;
+        var addEvent = function (type: any, callback: any) {
+            elem.addEventListener ?
+                elem.addEventListener(type, callback, false) :
+                elem.attachEvent('on' + type, callback);
+        };
+        var getStyle: any;
+        if (elem.currentStyle) {
+            getStyle = function (name: string) {
+                var val = elem.currentStyle[name];
+                if (name === 'height' && val.search(/px/i) !== 1) {
+                    var rect = elem.getBoundingClientRect();
+                    return rect.bottom - rect.top -
+                        parseFloat(getStyle('paddingTop')) -
+                        parseFloat(getStyle('paddingBottom')) + 'px';
+                };
+
+                return val;
+            }
+        } else {
+            getStyle = function (name: any) {
+                return getComputedStyle(elem, null)[name];
+            }
+        }
+
+        // var minHeight = parseFloat(getStyle('height'));
+
+        elem.style.resize = 'none';
+
+        var change = function () {
+            var scrollTop, height,
+                padding = 0,
+                style = elem.style;
+
+            if (elem._length === elem.value.length) return;
+            elem._length = elem.value.length;
+
+            if (!isFirefox && !isOpera) {
+                padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));
+            };
+            scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
+
+            elem.style.height = minHeight + 'px';
+            if (elem.scrollHeight > minHeight) {
+                if (maxHeight && elem.scrollHeight > maxHeight) {
+                    height = maxHeight - padding;
+                    style.overflowY = 'auto';
+                } else {
+                    height = elem.scrollHeight - padding;
+                    style.overflowY = 'hidden';
+                };
+                style.height = height + extra + 'px';
+                scrollTop += parseInt(style.height) - elem.currHeight;
+                document.body.scrollTop = scrollTop;
+                document.documentElement.scrollTop = scrollTop;
+                elem.currHeight = parseInt(style.height);
+            };
+        };
+
+        addEvent('propertychange', change);
+        addEvent('input', change);
+        addEvent('focus', change);
+        change();
+    };
+
+    public autoVditorTitle(vditor:IVditor, titleTextArea:HTMLTextAreaElement){
+        // titleTextArea.addEventListener(type, callback, false)
     }
 
     public getComments(vditor: IVditor, getData = false) {
@@ -162,7 +250,7 @@ class WYSIWYG {
                     comments.push({
                         id,
                         top:
-                        (this.element.querySelector(`.vditor-comment[data-cmtids="${id}"]`) as HTMLElement).offsetTop,
+                            (this.element.querySelector(`.vditor-comment[data-cmtids="${id}"]`) as HTMLElement).offsetTop,
                     });
                 });
                 return comments;
@@ -548,6 +636,7 @@ class WYSIWYG {
             }
         });
     }
+
 }
 
-export {WYSIWYG};
+export { WYSIWYG };

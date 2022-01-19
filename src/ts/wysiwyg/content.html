@@ -1,0 +1,147 @@
+<html>
+
+<head>
+    <style>
+        .vditor-title .ne-editor-extra-box {
+            max-width: 830px;
+            padding: 0 40px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .vditor-title .lake-title-editor {
+            font-family: Chinese Quote, Segoe UI, Roboto, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Helvetica Neue, Helvetica, Arial, sans-serif, Apple Color Emoji;
+            position: relative;
+            padding-bottom: 4px;
+        }
+
+
+        .vditor-title .lake-title-editor .ant-input,
+        .vditor-title .lake-title-editor .ant-input:focus {
+            border: none;
+            outline: none;
+            box-shadow: none;
+            padding: 0;
+        }
+
+
+        .vditor-title textarea.ant-input {
+            max-width: 100%;
+            min-height: 32px;
+            line-height: 1.389;
+            vertical-align: bottom;
+            transition: all .3s, height 0s;
+
+        }
+
+        .vditor-title .ant-input {
+            margin: 0;
+            font-variant: tabular-nums;
+            list-style: none;
+            font-feature-settings: "tnum";
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            min-width: 0;
+            background-image: none;
+            border-radius: 4px;
+        }
+
+        .vditor-title .lake-title {
+            color: #262626;
+            font-weight: 700;
+            font-size: 36px;
+        }
+
+
+        .vditor-title textarea {
+            font-family: inherit;
+            overflow: auto;
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+    </style>
+    <script>
+        var autoTextarea = function (elem, extra, maxHeight) {
+            extra = extra || 0;
+            var isFirefox = !!document.getBoxObjectFor || 'mozInnerScreenX' in window,
+                isOpera = !!window.opera && !!window.opera.toString().indexOf('Opera'),
+                addEvent = function (type, callback) {
+                    elem.addEventListener ?
+                        elem.addEventListener(type, callback, false) :
+                        elem.attachEvent('on' + type, callback);
+                },
+                getStyle = elem.currentStyle ? function (name) {
+                    var val = elem.currentStyle[name];
+
+                    if (name === 'height' && val.search(/px/i) !== 1) {
+                        var rect = elem.getBoundingClientRect();
+                        return rect.bottom - rect.top -
+                            parseFloat(getStyle('paddingTop')) -
+                            parseFloat(getStyle('paddingBottom')) + 'px';
+                    };
+
+                    return val;
+                } : function (name) {
+                    return getComputedStyle(elem, null)[name];
+                },
+                minHeight = parseFloat(getStyle('height'));
+
+            elem.style.resize = 'none';
+
+            var change = function () {
+                var scrollTop, height,
+                    padding = 0,
+                    style = elem.style;
+
+                if (elem._length === elem.value.length) return;
+                elem._length = elem.value.length;
+
+                if (!isFirefox && !isOpera) {
+                    padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));
+                };
+                scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
+
+                elem.style.height = minHeight + 'px';
+                if (elem.scrollHeight > minHeight) {
+                    if (maxHeight && elem.scrollHeight > maxHeight) {
+                        height = maxHeight - padding;
+                        style.overflowY = 'auto';
+                    } else {
+                        height = elem.scrollHeight - padding;
+                        style.overflowY = 'hidden';
+                    };
+                    style.height = height + extra + 'px';
+                    scrollTop += parseInt(style.height) - elem.currHeight;
+                    document.body.scrollTop = scrollTop;
+                    document.documentElement.scrollTop = scrollTop;
+                    elem.currHeight = parseInt(style.height);
+                };
+            };
+
+            addEvent('propertychange', change);
+            addEvent('input', change);
+            addEvent('focus', change);
+            change();
+        };
+    </script>
+</head>
+
+<body>
+    <div class="vditor-title">
+        <div class="ne-editor-extra-box">
+            <div class="lake-title-editor" style="margin-top: 33px;">
+                <textarea id="input1" data-testid="input" placeholder="请输入标题" tabindex="1" rows="1"
+                    class="ant-input lake-title"
+                    style="height: 50px; max-height: 9.0072e+15px; resize: none;"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var text = document.getElementById("input1");
+        autoTextarea(text);// 调用
+    </script>
+</body>
+
+</html>

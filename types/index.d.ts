@@ -690,6 +690,7 @@ interface IEChart {
 interface IVditor {
     element: HTMLElement;
     options: IOptions;
+    contentData?: IContentData;
     originalInnerHTML: string;
     lute: Lute;
     currentMode: "sv" | "wysiwyg" | "ir";
@@ -783,4 +784,8 @@ interface ICommentsData {
     top: number;
 }
 
+interface IContentData {
+    title: string;
+    createTime?: string;
+}
 

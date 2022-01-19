@@ -87,7 +87,6 @@ class DiagramEditor {
                     var blobParts=[];
                     blobParts.push(new Blob([svg]));
                     let urlStr =elt.getAttribute("src"); 
-                    debugger
                     let hashIndex = urlStr.lastIndexOf("?");
                     if(hashIndex!=-1){
                         urlStr=urlStr.substring(0,urlStr.lastIndexOf("?"));
@@ -221,21 +220,21 @@ class DiagramEditor {
     }
 
     public load() {
-        this.initial = document.getElementById('diagram').innerHTML;
+        this.initial = "";
         this.start();
     };
 
     public start() {
         this.name = (window.location.hash.length > 1) ? window.location.hash.substring(1) : 'default';
-        var current = localStorage.getItem(this.name);
+        // var current = localStorage.getItem(this.name);
 
-        if (current != null) {
-            var entry = JSON.parse(current);
-            document.getElementById('diagram').innerHTML = entry.data;
-        }
-        else {
-            document.getElementById('diagram').innerHTML = this.initial;
-        }
+        // if (current != null) {
+        //     var entry = JSON.parse(current);
+        //     document.getElementById('diagram').innerHTML = entry.data;
+        // }
+        // else {
+        //     document.getElementById('diagram').innerHTML = this.initial;
+        // }
     };
 }
 

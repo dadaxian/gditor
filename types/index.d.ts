@@ -656,6 +656,8 @@ interface IOptions {
         position: "left" | "right",
     };
 
+    contentData?:IContentData;
+
     /** 编辑器异步渲染完成后的回调方法 */
     after?(): void;
 
@@ -679,6 +681,9 @@ interface IOptions {
 
     /** 编辑器中选中文字后触发 */
     select?(value: string): void;
+
+    /** 标题改动后触发 */
+    changeTileFun?():void;
 }
 
 interface IEChart {
@@ -747,6 +752,7 @@ interface IVditor {
     };
     wysiwyg?: {
         range: Range,
+        titleTextArea: HTMLTextAreaElement;
         element: HTMLPreElement,
         selectPopover: HTMLDivElement,
         popover: HTMLDivElement,

@@ -27,6 +27,7 @@ import {setTheme} from "./ts/ui/setTheme";
 import {Undo} from "./ts/undo/index";
 import {Upload} from "./ts/upload/index";
 import {addScript, addScriptSync} from "./ts/util/addScript";
+import { ContentData } from "./ts/util/ContentData";
 import {getSelectText} from "./ts/util/getSelectText";
 import {Options} from "./ts/util/Options";
 import {processCodeRender} from "./ts/util/processCode";
@@ -62,9 +63,11 @@ class Vditor extends VditorMethod {
             }
             id = document.getElementById(id);
         }
-
+        debugger
         const getOptions = new Options(options);
         const mergedOptions = getOptions.merge();
+
+        debugger
 
         // 支持自定义国际化
         if (!mergedOptions.i18n) {
@@ -88,6 +91,12 @@ class Vditor extends VditorMethod {
             window.VditorI18n = mergedOptions.i18n;
             this.init(id, mergedOptions);
         }
+    }
+
+    /** 设置标题 */
+    public setTitle(title:string){
+        this.vditor.wysiwyg.titleTextArea.value=title;
+        this.vditor.contentData.title=title;
     }
 
     /** 设置主题 */
@@ -444,6 +453,7 @@ class Vditor extends VditorMethod {
             hint: new Hint(mergedOptions.hint.extend),
             lute: undefined,
             options: mergedOptions,
+            contentData: new ContentData(),
             originalInnerHTML: id.innerHTML,
             outline: new Outline(window.VditorI18n.outline),
             tip: new Tip(),
@@ -454,6 +464,8 @@ class Vditor extends VditorMethod {
         this.vditor.wysiwyg = new WYSIWYG(this.vditor);
         this.vditor.ir = new IR(this.vditor);
         this.vditor.toolbar = new Toolbar(this.vditor);
+        debugger
+        this.vditor.contentData=mergedOptions.contentData;
 
         if (mergedOptions.resize.enable) {
             this.vditor.resize = new Resize(this.vditor);

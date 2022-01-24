@@ -137,6 +137,13 @@ const initVditor = (language) => {
           replace('/\\s/g', '')
       },
     },
+    contentData:{
+      title:"111"
+    },
+    changeTileFun:function(){
+      console.log("覆盖了~");
+      console.log(window.vditor.vditor.contentData.title);
+    }
   })
 }
 initVditor('zh_CN')

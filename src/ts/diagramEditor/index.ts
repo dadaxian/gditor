@@ -15,6 +15,7 @@ class DiagramEditor {
     public edit(elt: any) {
         var iframe = document.createElement('iframe');
         iframe.setAttribute('frameborder', '0');
+        iframe.style.zIndex="1000000";
 
         var close = function () {
             window.removeEventListener('message', receive);
@@ -93,6 +94,7 @@ class DiagramEditor {
                     }
                     var filenanme=urlStr.substring(urlStr.lastIndexOf("/")+1);
                     fileToUpload.push(new File(blobParts,decodeURI(filenanme),{type:'image/svg+xml'}))
+                    debugger
                     uploadFilesWithCover(this.window.vditor.vditor,fileToUpload,elt)
                     localStorage.setItem(this.name, JSON.stringify({ lastModified: new Date(), data: svg }));
                     localStorage.removeItem('.draft-' + name);
@@ -128,6 +130,7 @@ class DiagramEditor {
     public new() {
         var iframe = document.createElement('iframe');
         iframe.setAttribute('frameborder', '0');
+        iframe.style.zIndex="1000000";
 
         var close = function () {
             window.removeEventListener('message', receive);

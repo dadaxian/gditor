@@ -126,7 +126,7 @@
 }
 
 .vditor-speech {
-    background-color: #f6f8fa;
+    background-color: #ffffff;
     border: 1px solid #d1d5da;
     color: #586069;
 }
@@ -136,7 +136,7 @@
 }
 
 .vditor-linkcard a {
-    background-color: #f6f8fa;
+    background-color: #ffffff;
 }
 
 .vditor-linkcard a:visited .vditor-linkcard__abstract {

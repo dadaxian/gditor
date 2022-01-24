@@ -38,7 +38,7 @@ export class Toolbar {
 
         this.element = document.createElement("div");
         this.element.className = "vditor-toolbar";
-
+        debugger
         options.toolbar.forEach((menuItem: IMenuItem, i: number) => {
             const itemElement = this.genItem(vditor, menuItem, i);
             this.element.appendChild(itemElement);
@@ -128,9 +128,11 @@ export class Toolbar {
                 menuItemObj = new Info(vditor, menuItem);
                 break;
             case "edit-mode":
+                debugger
                 menuItemObj = new EditMode(vditor, menuItem);
                 break;
             case "special-function":
+                debugger
                 menuItemObj = new SprcialFuntion(vditor, menuItem);
                 break;
             case "devtools":

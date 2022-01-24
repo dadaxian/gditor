@@ -33,7 +33,7 @@ export const mindmapRender = (element: (HTMLElement | Document) = document, cdn 
                                     color: "#4285f4",
                                 },
                                 label: {
-                                    backgroundColor: "#f6f8fa",
+                                    backgroundColor: "#ffffff",
                                     borderColor: "#d1d5da",
                                     borderRadius: 5,
                                     borderWidth: 0.5,

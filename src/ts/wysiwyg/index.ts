@@ -1,3 +1,4 @@
+import Vditor from "../../method";
 import { Constants } from "../constants";
 import { hidePanel } from "../toolbar/setToolbar";
 import { isCtrl, isFirefox } from "../util/compatibility";
@@ -52,7 +53,7 @@ class WYSIWYG {
                 <div class="ne-editor-extra-box">
                     <div class="lake-title-editor" style="margin-top: 33px;">
                         <textarea id="titleAreaInput" data-testid="input" placeholder="请输入标题" tabindex="1" rows="1"
-                            class="ant-input lake-title" style="height: 50px; max-height: 9.0072e+15px; resize: none;"></textarea>
+                            class="ant-input lake-title" style="height: 50px; max-height: 9.0072e+15px; resize: none; font-size: 36px;"></textarea>
                     </div>
                 </div>
             </div>
@@ -160,10 +161,10 @@ class WYSIWYG {
 
         // 设置标题部分自适应高度
         this.titleTextArea = divElement.getElementsByTagName("textarea").item(0);
-        this.autoTextarea(this.titleTextArea,this.titleTextArea.style.height.substring(0,this.titleTextArea.style.length-1));// 调用
+        this.autoTextarea(this.titleTextArea, this.titleTextArea.style.height.substring(0, this.titleTextArea.style.length - 2),vditor);// 调用
     }
 
-    public autoTextarea(elem: any,minHeight:any, extra?: any, maxHeight?: any) {
+    public autoTextarea(elem: any, minHeight: any, vditor: IVditor, extra?: any, maxHeight?: any) {
         extra = extra || 0;
         var isFirefox = navigator.userAgent.indexOf("Firefox") > -1;
         var isOpera = navigator.userAgent.indexOf("Opera") > -1;
@@ -224,14 +225,32 @@ class WYSIWYG {
                 elem.currHeight = parseInt(style.height);
             };
         };
+        var changeTitle = function () {
+            // console.log("tiltle改变:" + elem.value);
+            debugger
+            vditor.contentData.title=elem.value;
+            vditor.options.changeTileFun();
+        };
+        var keyd = function (e: any) {
+            // console.log("有键按下:");
+            if (e.keyCode == 13) {
+                console.log("回车按下");
+                debugger
+                elem.blur();
+                vditor.contentData.title=elem.value;
+                vditor.options.changeTileFun();
+            }
 
+        }
         addEvent('propertychange', change);
         addEvent('input', change);
         addEvent('focus', change);
+        addEvent('keydown', keyd);
+        addEvent('blur', changeTitle);
         change();
     };
 
-    public autoVditorTitle(vditor:IVditor, titleTextArea:HTMLTextAreaElement){
+    public autoVditorTitle(vditor: IVditor, titleTextArea: HTMLTextAreaElement) {
         // titleTextArea.addEventListener(type, callback, false)
     }
 

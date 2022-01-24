@@ -129,6 +129,12 @@ export class Options {
         },
         value: "",
         width: "auto",
+        contentData:{
+            title: "未命名文章"
+        },
+        changeTileFun:function () {
+            console.log("覆盖了！");
+        }
     };
 
     constructor(options: IOptions) {
@@ -136,6 +142,7 @@ export class Options {
     }
 
     public merge(): IOptions {
+        debugger
         if (this.options) {
             if (this.options.toolbar) {
                 this.options.toolbar = this.mergeToolbar(this.options.toolbar);
@@ -164,7 +171,7 @@ export class Options {
         return mergedOptions;
     }
 
-    private mergeToolbar(toolbar: Array<string | IMenuItem>) {
+    private mergeToolbar(toolbar: Array<string | IMenuItem>) { 
         const toolbarItem = [
             {
                 icon: '<svg><use xlink:href="#vditor-icon-export"></use></svg>',

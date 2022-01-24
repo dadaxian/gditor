@@ -189,7 +189,6 @@
     padding-bottom: 4px;
   }
 
-
   .vditor-title .lake-title-editor .ant-input,
   .vditor-title .lake-title-editor .ant-input:focus {
     border: none !important;
@@ -205,12 +204,8 @@
     line-height: 1.389;
     vertical-align: bottom;
     transition: all .3s, height 0s;
-
   }
-  #titleAreaInput{
-    font-size: 36px !important;
 
-  }
 
   .vditor-title .ant-input {
     margin: 0;
@@ -245,14 +240,17 @@
     /* WebKit browsers */
     color: #e6e6e6;
   }
+
   .vditor-title textarea:-moz-placeholder {
     /* Mozilla Firefox 4 to 18 */
     color: #e6e6e6;
   }
+
   .vditor-title textarea::-moz-placeholder {
     /* Mozilla Firefox 19+ */
     color: #e6e6e6;
   }
+
   .vditor-title textarea::-ms-input-placeholder {
     /* Internet Explorer 10+ */
     color: #e6e6e6;

@@ -256,7 +256,7 @@ const uploadFilesWithNew =
                         region: stsData.region
                     })
                     //   文章 名称
-                    var title = "我是你爹";
+                    var title = vditor.contentData.title;
                     // 文章中显示的地址 
                     for (let i = 0, iMax = validateResult.length; i < iMax; i++) {
                         let timestamp = (new Date()).valueOf();
@@ -267,8 +267,6 @@ const uploadFilesWithNew =
                         var filename = originName + "-" + timestamp + type;
                         // 下面的title是为了再oss存储的时候能够分文件夹存储
                         var uploadFilename = title + "/" + originName.replace(" ", "") + "-" + timestamp + type;
-                        // 下面的title是为了再oss存储的时候能够分文件夹存储
-                        var uploadFilename = title + "/" + originName + type;
                         client.put(uploadFilename, validateResult[i]).then((result) => {
                             uploadResult.data.succMap.set(filename, result.url);
                             if (i == iMax - 1) {
@@ -301,7 +299,7 @@ const uploadFilesWithNew =
 
 
 /**
- * 覆盖原来的文件
+ * 覆盖原来的上传文件
  * @param vditor 
  * @param files 
  * @param element 
@@ -378,8 +376,6 @@ const uploadFilesWithCover =
                         bucket: stsData.bucket,
                         region: stsData.region
                     })
-                    //   文章 名称
-                    var title = "我是你爹";
                     // 文章中显示的地址 
                     for (let i = 0, iMax = validateResult.length; i < iMax; i++) {
 
@@ -389,7 +385,7 @@ const uploadFilesWithCover =
                         // 上传相对于整个bucket（图床）路径名
                         var filename = originName + type;
                         // 下面的title是为了再oss存储的时候能够分文件夹存储
-                        var uploadFilename = title + "/" + originName + type;
+                        var uploadFilename = vditor.contentData.title + "/" + originName + type;
                         client.put(uploadFilename, validateResult[i]).then((result) => {
                             uploadResult.data.succMap.set(filename, result.url);
                             if (i == iMax - 1) {
@@ -502,7 +498,7 @@ const uploadFiles =
                         region: stsData.region
                     })
                     //   文章 名称
-                    var title = "我是你爹";
+                    var title = vditor.contentData.title;
                     // 文章中显示的地址 
                     for (let i = 0, iMax = validateResult.length; i < iMax; i++) {
                         let timestamp = (new Date()).valueOf();

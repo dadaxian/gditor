@@ -130,7 +130,7 @@ const initVditor = (language) => {
       token: 'test',
       url: '/api/upload/editor',
       linkToImgUrl: '/api/upload/fetch',
-      urlToGetOssCredentials: "https://gugg.pro:8989/admin/upload/policy",
+      urlToGetOssCredentials: "http://localhost:8989/admin/upload/policy",
       filename (name) {
         return name.replace(/[^(a-zA-Z0-9\u4e00-\u9fa5\.)]/g, '').
           replace(/[\?\\/:|<>\*\[\]\(\)\$%\{\}@~]/g, '').

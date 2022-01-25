@@ -1,4 +1,5 @@
-import {uploadFilesWithCover, uploadFilesWithNew} from "../upload/index";
+import { uploadFilesWithCover, uploadFilesWithNew } from "../upload/index";
+import * as Base64  from "../../../node_modules/js-base64/base64";
 
 class DiagramEditor {
     public editUrl: string;
@@ -6,8 +7,8 @@ class DiagramEditor {
     public name: string;
     public vditor: IVditor;
 
-    constructor(vditor:IVditor) {
-        this.vditor=vditor;
+    constructor(vditor: IVditor) {
+        this.vditor = vditor;
         this.initial = null;
         this.name = null;
     }
@@ -15,7 +16,7 @@ class DiagramEditor {
     public edit(elt: any) {
         var iframe = document.createElement('iframe');
         iframe.setAttribute('frameborder', '0');
-        iframe.style.zIndex="1000000";
+        iframe.style.zIndex = "1000000";
 
         var close = function () {
             window.removeEventListener('message', receive);
@@ -61,10 +62,10 @@ class DiagramEditor {
                         // var svg = new XMLSerializer().serializeToString(elt.firstChild);
                         //  elt.getAttribute("src");
                         let xhr = new XMLHttpRequest();
-                        let urlStr =elt.getAttribute("src");
-                        var originUrl=new URL(urlStr);
+                        let urlStr = elt.getAttribute("src");
+                        var originUrl = new URL(urlStr);
                         let timestamp1 = (new Date()).valueOf();
-                        xhr.open("GET", originUrl.origin+originUrl.pathname+"?ww="+timestamp1);
+                        xhr.open("GET", originUrl.origin + originUrl.pathname + "?ww=" + timestamp1);
                         // xhr.setRequestHeader('X-Token', vditor.options.upload.token);
                         xhr.onreadystatechange = function () {
                             if (xhr.readyState == 4 && xhr.status == 200) {
@@ -82,20 +83,20 @@ class DiagramEditor {
                 }
                 else if (msg.event == 'export') {
                     // Extracts SVG DOM from data URI to enable links
-                    var svg = atob(msg.data.substring(msg.data.indexOf(',') + 1));
+                    var svg = Base64.decode(msg.data.substring(msg.data.indexOf(',') + 1));
                     // elt.innerHTML = svg;
-                    var fileToUpload =[];
-                    var blobParts=[];
+                    var fileToUpload = [];
+                    var blobParts = [];
                     blobParts.push(new Blob([svg]));
-                    let urlStr =elt.getAttribute("src"); 
+                    let urlStr = elt.getAttribute("src");
                     let hashIndex = urlStr.lastIndexOf("?");
-                    if(hashIndex!=-1){
-                        urlStr=urlStr.substring(0,urlStr.lastIndexOf("?"));
+                    if (hashIndex != -1) {
+                        urlStr = urlStr.substring(0, urlStr.lastIndexOf("?"));
                     }
-                    var filenanme=urlStr.substring(urlStr.lastIndexOf("/")+1);
-                    fileToUpload.push(new File(blobParts,decodeURI(filenanme),{type:'image/svg+xml'}))
+                    var filenanme = urlStr.substring(urlStr.lastIndexOf("/") + 1);
+                    fileToUpload.push(new File(blobParts, decodeURI(filenanme), { type: 'image/svg+xml' }))
                     debugger
-                    uploadFilesWithCover(this.window.vditor.vditor,fileToUpload,elt)
+                    uploadFilesWithCover(this.window.vditor.vditor, fileToUpload, elt)
                     localStorage.setItem(this.name, JSON.stringify({ lastModified: new Date(), data: svg }));
                     localStorage.removeItem('.draft-' + name);
                     draft = null;
@@ -130,7 +131,7 @@ class DiagramEditor {
     public new() {
         var iframe = document.createElement('iframe');
         iframe.setAttribute('frameborder', '0');
-        iframe.style.zIndex="1000000";
+        iframe.style.zIndex = "1000000";
 
         var close = function () {
             window.removeEventListener('message', receive);
@@ -183,14 +184,14 @@ class DiagramEditor {
                 }
                 else if (msg.event == 'export') {
                     // Extracts SVG DOM from data URI to enable links
-                    var svg = atob(msg.data.substring(msg.data.indexOf(',') + 1));
+                    var svg = Base64.decode(msg.data.substring(msg.data.indexOf(',') + 1));
                     // elt.innerHTML = svg;
-                    var fileToUpload =[];
-                    var blobParts=[];
+                    var fileToUpload = [];
+                    var blobParts = [];
                     blobParts.push(new Blob([svg]));
-                    var filenanme="drawself.svg";
-                    fileToUpload.push(new File(blobParts,decodeURI(filenanme),{type:'image/svg+xml'}))
-                    uploadFilesWithNew(this.window.vditor.vditor,fileToUpload)
+                    var filenanme = "drawself.svg";
+                    fileToUpload.push(new File(blobParts, decodeURI(filenanme), { type: 'image/svg+xml' }))
+                    uploadFilesWithNew(this.window.vditor.vditor, fileToUpload)
                     localStorage.setItem(this.name, JSON.stringify({ lastModified: new Date(), data: svg }));
                     localStorage.removeItem('.draft-' + name);
                     draft = null;

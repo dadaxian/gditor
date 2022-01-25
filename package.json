@@ -16,8 +16,10 @@
   ],
   "dependencies": {
     "@types/ali-oss": "^6.16.2",
+    "@types/js-base64": "^3.3.1",
     "ali-oss": "^6.16.0",
     "diff-match-patch": "^1.0.5",
+    "js-base64": "^3.7.2",
     "postcss": "^8.1.0",
     "uuid": "^8.3.2"
   },
